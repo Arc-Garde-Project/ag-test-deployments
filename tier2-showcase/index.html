@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AG Tier 2 Showcase</title>
+
+  <!-- Google Fonts: Poppins + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================
+       AG TIER 2 SHOWCASE — STYLES
+       ======================================== */
+
+    /* --- Reset & Base --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* AG Fluid Tokens */
+      --text-hero: clamp(2.25rem, 1.647rem + 2.57vw, 3.938rem);
+      --text-h1: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+      --text-h2: clamp(1.5rem, 1.155rem + 1.47vw, 2.25rem);
+      --text-h3: clamp(1.313rem, 1.054rem + 1.1vw, 1.875rem);
+      --text-h4: clamp(1.125rem, 0.952rem + 0.74vw, 1.5rem);
+      --text-lg: clamp(1rem, 0.943rem + 0.24vw, 1.125rem);
+      --text-base: clamp(0.938rem, 0.909rem + 0.12vw, 1rem);
+      --space-section: clamp(3rem, 1.619rem + 5.89vw, 6rem);
+      --space-container: clamp(1.125rem, 0.262rem + 3.68vw, 3rem);
+
+      /* Colors */
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #0d1117;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #8b5cf6;
+      --accent-gold: #d4af37;
+      --text-primary: #f0f0f0;
+      --text-secondary: #a0a0b0;
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    html {
+      scroll-behavior: auto; /* Lenis handles scroll */
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: var(--text-base);
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Poppins', sans-serif;
+      text-wrap: balance;
+      line-height: 1.15;
+    }
+
+    p, li, blockquote, figcaption {
+      text-wrap: pretty;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-left: var(--space-container);
+      padding-right: var(--space-container);
+    }
+
+    /* --- Section Shared --- */
+    .section {
+      position: relative;
+      padding-top: var(--space-section);
+      padding-bottom: var(--space-section);
+    }
+
+    .section-label {
+      display: inline-block;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+      opacity: 0.8;
+    }
+
+    /* --- 1. HERO --- */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero__bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      padding: 2rem var(--space-container);
+    }
+
+    .hero__heading {
+      font-size: var(--text-hero);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero__heading .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    .hero__subtitle {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      opacity: 0;
+    }
+
+    .hero__scroll-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      margin-top: 2rem;
+    }
+
+    .hero__scroll-indicator span {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .hero__scroll-arrow {
+      width: 24px;
+      height: 24px;
+      border-right: 2px solid var(--accent-cyan);
+      border-bottom: 2px solid var(--accent-cyan);
+      transform: rotate(45deg);
+    }
+
+    /* --- 2. SCROLL-LINKED --- */
+    .scroll-section {
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+
+    .marquee-track {
+      white-space: nowrap;
+      padding: 2rem 0;
+    }
+
+    .marquee-text {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(3rem, 2rem + 5vw, 8rem);
+      font-weight: 700;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--accent-cyan);
+      display: inline-block;
+      will-change: transform;
+    }
+
+    .pin-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .pin-content {
+      text-align: center;
+      max-width: 700px;
+      padding: 0 var(--space-container);
+    }
+
+    .pin-content h2 {
+      font-size: var(--text-h1);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .pin-content p {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+    }
+
+    .progress-bar-track {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 100;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+      will-change: width;
+    }
+
+    /* --- 3. STAGGERED CARDS --- */
+    .cards-section {
+      background: var(--bg-primary);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    @media (hover: hover) {
+      .glass-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 40px rgba(0, 212, 255, 0.12), 0 0 0 1px rgba(0, 212, 255, 0.15);
+      }
+    }
+
+    .glass-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    .glass-card__icon--cyan { background: linear-gradient(135deg, var(--accent-cyan), #0099cc); }
+    .glass-card__icon--purple { background: linear-gradient(135deg, var(--accent-purple), #6d28d9); }
+    .glass-card__icon--gold { background: linear-gradient(135deg, var(--accent-gold), #b8960c); }
+
+    .glass-card h3 {
+      font-size: var(--text-h4);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .glass-card p {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    /* --- 4. TEXT ANIMATION --- */
+    .text-section {
+      background: var(--bg-secondary);
+    }
+
+    .text-section__heading {
+      font-size: var(--text-h1);
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .text-section__heading .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .text-section__body {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin-bottom: 3rem;
+      line-height: 1.75;
+    }
+
+    .text-section__body .word {
+      display: inline-block;
+      opacity: 0;
+    }
+
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .counter-item {
+      text-align: center;
+    }
+
+    .counter-value {
+      font-family: 'Poppins', sans-serif;
+      font-size: var(--text-h1);
+      font-weight: 700;
+      color: var(--accent-cyan);
+      display: block;
+    }
+
+    .counter-value--purple { color: var(--accent-purple); }
+    .counter-value--gold { color: var(--accent-gold); }
+
+    .counter-label {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* --- 5. VANTA NET --- */
+    .net-section {
+      position: relative;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .net-section__bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .net-section__content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 0 var(--space-container);
+    }
+
+    .net-section__quote {
+      font-family: 'Poppins', sans-serif;
+      font-size: var(--text-h2);
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+
+    .net-section__attr {
+      font-size: var(--text-base);
+      color: var(--accent-gold);
+      font-weight: 500;
+    }
+
+    /* --- 6. FOOTER --- */
+    .footer {
+      background: var(--bg-primary);
+      border-top: 1px solid var(--glass-border);
+      padding: 3rem 0;
+    }
+
+    .footer__inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .footer__label {
+      font-family: 'Poppins', sans-serif;
+      font-size: var(--text-h4);
+      font-weight: 600;
+    }
+
+    .footer__label span {
+      color: var(--accent-cyan);
+    }
+
+    .footer__libs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .footer__lib-tag {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+    }
+
+    .footer__replay-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: transparent;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 0.6rem 1.25rem;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+      width: fit-content;
+    }
+
+    @media (hover: hover) {
+      .footer__replay-btn:hover {
+        background: var(--accent-cyan);
+        color: var(--bg-primary);
+      }
+    }
+
+    /* --- Reduced Motion --- */
+    @media (prefers-reduced-motion: reduce) {
+      .hero__heading .char,
+      .hero__subtitle,
+      .hero__scroll-indicator,
+      .glass-card,
+      .text-section__heading .char,
+      .text-section__body .word {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
+      .hero__scroll-arrow {
+        animation: none !important;
+      }
+
+      .marquee-text {
+        transform: none !important;
+      }
+    }
+
+    /* --- Mobile: Disable Vanta below 768px --- */
+    @media (max-width: 767px) {
+      .hero__bg,
+      .net-section__bg {
+        background: linear-gradient(135deg, #0d1117 0%, #0a0a0a 100%);
+      }
+
+      .hero__bg canvas,
+      .net-section__bg canvas {
+        display: none !important;
+      }
+
+      .hero {
+        min-height: 80vh;
+      }
+
+      .net-section {
+        min-height: 50vh;
+      }
+
+      .footer__inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .counters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+
+  <!-- ==============================
+       1. HERO — Vanta WAVES + SplitType
+       ============================== -->
+  <section class="hero section" id="hero">
+    <div class="hero__bg" id="vantaWavesBg"></div>
+    <div class="hero__content">
+      <h1 class="hero__heading" id="heroHeading">AG Tier 2 Showcase</h1>
+      <p class="hero__subtitle" id="heroSubtitle">Every Tier 2 library in action. GSAP, ScrollTrigger, Lenis, SplitType, Vanta, and Three.js working together.</p>
+      <div class="hero__scroll-indicator" id="heroScrollIndicator">
+        <span>Scroll to explore</span>
+        <div class="hero__scroll-arrow" id="scrollArrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       2. SCROLL-LINKED — GSAP ScrollTrigger (Scrub)
+       ============================== -->
+  <section class="scroll-section section" id="scrollSection">
+    <div class="section-label container">ScrollTrigger Scrub</div>
+    <div class="marquee-track" id="marqueeTrack">
+      <span class="marquee-text" id="marqueeText">SCROLL-DRIVEN ANIMATION &mdash; GSAP SCRUB &mdash; SMOOTH MOTION &mdash; PIXEL PERFECT &mdash;&nbsp;</span>
+    </div>
+  </section>
+
+  <section class="pin-section" id="pinSection">
+    <div class="pin-content">
+      <div class="section-label">Pinned Section</div>
+      <h2 id="pinHeading">Content transforms while pinned</h2>
+      <p id="pinBody">This section stays fixed while you scroll. The text, scale, and opacity shift in response to your scroll position. All driven by GSAP ScrollTrigger with scrub.</p>
+    </div>
+  </section>
+
+  <!-- ==============================
+       3. STAGGERED CARDS — GSAP ScrollTrigger (Enter)
+       ============================== -->
+  <section class="cards-section section" id="cardsSection">
+    <div class="container">
+      <div class="section-label">Staggered Enter Animations</div>
+      <h2 style="font-size: var(--text-h2); font-weight: 700; margin-bottom: 0.5rem;">Glass-Morphism Cards</h2>
+      <p style="color: var(--text-secondary); max-width: 540px; margin-bottom: 0;">Six cards staggered on scroll enter with hover glow.</p>
+
+      <div class="cards-grid" id="cardsGrid">
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--cyan">G</div>
+          <h3>GSAP Core</h3>
+          <p>Industry-standard animation engine. Timelines, easing, and performant transforms for every interaction.</p>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--purple">ST</div>
+          <h3>ScrollTrigger</h3>
+          <p>Scroll-linked animations with pin, scrub, snap, and enter/leave callbacks. Drives the entire scroll experience.</p>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--gold">L</div>
+          <h3>Lenis</h3>
+          <p>Buttery smooth scroll with momentum. Connected to ScrollTrigger for seamless scroll-driven motion.</p>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--cyan">Sp</div>
+          <h3>SplitType</h3>
+          <p>Splits text into characters, words, and lines. Enables per-character stagger reveals and word-level fade-ins.</p>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--purple">Vn</div>
+          <h3>Vanta.js</h3>
+          <p>Drop-in animated 3D backgrounds powered by Three.js. Waves, net, fog, birds, and more with zero setup.</p>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card__icon glass-card__icon--gold">3</div>
+          <h3>Three.js</h3>
+          <p>The 3D rendering engine behind Vanta. WebGL-powered scenes, geometries, lighting, and camera control.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       4. TEXT ANIMATION — SplitType + GSAP
+       ============================== -->
+  <section class="text-section section" id="textSection">
+    <div class="container">
+      <div class="section-label">SplitType + GSAP</div>
+      <h2 class="text-section__heading" id="textHeading">Characters reveal on scroll</h2>
+      <p class="text-section__body" id="textBody">Every word in this paragraph fades in with a stagger as you scroll into view. SplitType handles the splitting, GSAP handles the animation, ScrollTrigger handles the timing.</p>
+
+      <div class="counters" id="countersBlock">
+        <div class="counter-item">
+          <span class="counter-value" id="counter1" data-target="7">0</span>
+          <span class="counter-label">Libraries</span>
+        </div>
+        <div class="counter-item">
+          <span class="counter-value counter-value--purple" id="counter2" data-target="6">0</span>
+          <span class="counter-label">Sections</span>
+        </div>
+        <div class="counter-item">
+          <span class="counter-value counter-value--gold" id="counter3" data-target="1">0</span>
+          <span class="counter-label">HTML File</span>
+        </div>
+        <div class="counter-item">
+          <span class="counter-value" id="counter4" data-target="0">0</span>
+          <span class="counter-label">Build Tools</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       5. VANTA NET — 3D Background
+       ============================== -->
+  <section class="net-section section" id="netSection">
+    <div class="net-section__bg" id="vantaNetBg"></div>
+    <div class="net-section__content container">
+      <div class="section-label">Vanta NET</div>
+      <blockquote class="net-section__quote">Tier 2 adds motion, depth, and interactivity without a single build step. CDN-loaded, AG-standard compliant, production ready.</blockquote>
+      <p class="net-section__attr">Move your mouse. The dots follow.</p>
+    </div>
+  </section>
+
+  <!-- ==============================
+       6. FOOTER
+       ============================== -->
+  <footer class="footer section" id="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__label">Built with <span>AG Tier 2</span></div>
+        <div class="footer__libs">
+          <span class="footer__lib-tag">GSAP 3</span>
+          <span class="footer__lib-tag">ScrollTrigger</span>
+          <span class="footer__lib-tag">Lenis 1</span>
+          <span class="footer__lib-tag">SplitType 0.3</span>
+          <span class="footer__lib-tag">Three.js 0.158</span>
+          <span class="footer__lib-tag">Vanta 0.5.24</span>
+        </div>
+        <button class="footer__replay-btn" id="replayBtn" type="button">Replay All</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==============================
+       SCRIPTS — AG Standard Load Order
+       ============================== -->
+  <!-- 1. GSAP Core -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <!-- 2. ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+  <!-- 3. Lenis -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
+  <!-- 4. Three.js (before Vanta) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <!-- 5. Vanta WAVES -->
+  <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.waves.min.js"></script>
+  <!-- 6. Vanta NET -->
+  <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js"></script>
+  <!-- 7. SplitType -->
+  <script src="https://cdn.jsdelivr.net/npm/split-type@0.3"></script>
+
+  <script>
+    (function () {
+      /* ========================================
+         AG TIER 2 SHOWCASE — SCRIPT
+         ======================================== */
+
+      var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var isMobile = window.innerWidth < 768;
+
+      /* --- Lenis Smooth Scroll --- */
+      var lenis = null;
+      if (!prefersReducedMotion) {
+        lenis = new Lenis({
+          duration: 0.9,
+          easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+          smooth: true
+        });
+
+        lenis.on('scroll', ScrollTrigger.update);
+
+        gsap.ticker.add(function (time) {
+          lenis.raf(time * 1000);
+        });
+        gsap.ticker.lagSmoothing(0);
+      }
+
+      /* --- Progress Bar --- */
+      if (!prefersReducedMotion) {
+        gsap.to('#progressFill', {
+          width: '100%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: document.body,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.3
+          }
+        });
+      }
+
+      /* ==============================
+         1. HERO — Vanta WAVES + SplitType
+         ============================== */
+      var vantaWaves = null;
+      if (!prefersReducedMotion && !isMobile && typeof VANTA !== 'undefined') {
+        try {
+          vantaWaves = VANTA.WAVES({
+            el: '#vantaWavesBg',
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: false,
+            gyroControls: false,
+            minHeight: 200,
+            minWidth: 200,
+            scale: 1.0,
+            scaleMobile: 1.0,
+            color: 0x0a1628,
+            shininess: 35,
+            waveHeight: 15,
+            waveSpeed: 0.7,
+            zoom: 0.85
+          });
+        } catch (e) { /* Vanta init failed silently */ }
+      }
+
+      if (!prefersReducedMotion && typeof SplitType !== 'undefined') {
+        var heroSplit = new SplitType('#heroHeading', { types: 'chars' });
+
+        gsap.to(heroSplit.chars, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.03,
+          ease: 'power2.out',
+          delay: 0.3
+        });
+
+        gsap.to('#heroSubtitle', {
+          opacity: 1,
+          duration: 0.7,
+          delay: 0.9,
+          ease: 'power2.out'
+        });
+
+        gsap.to('#heroScrollIndicator', {
+          opacity: 1,
+          duration: 0.6,
+          delay: 2.1,
+          ease: 'power2.out'
+        });
+
+        /* Bounce animation on scroll arrow */
+        gsap.to('#scrollArrow', {
+          y: 6,
+          duration: 0.7,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut'
+        });
+      } else {
+        /* Reduced motion: make everything visible */
+        document.querySelectorAll('.hero__heading .char').forEach(function (c) {
+          c.style.opacity = '1';
+          c.style.transform = 'none';
+        });
+      }
+
+      /* ==============================
+         2. SCROLL-LINKED — Marquee + Pin
+         ============================== */
+      if (!prefersReducedMotion) {
+        gsap.to('#marqueeText', {
+          x: function () { return -document.getElementById('marqueeText').offsetWidth / 2; },
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#scrollSection',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true
+          }
+        });
+
+        var pinTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '#pinSection',
+            start: 'top top',
+            end: '+=150%',
+            pin: true,
+            scrub: 0.6
+          }
+        });
+
+        pinTl
+          .from('#pinHeading', { scale: 0.8, opacity: 0, duration: 0.6, ease: 'power2.out' })
+          .from('#pinBody', { y: 30, opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3')
+          .to('#pinHeading', { scale: 1.05, color: '#00d4ff', duration: 0.9 }, '+=0.3')
+          .to('#pinContent', { opacity: 0.3, duration: 0.6 });
+      }
+
+      /* ==============================
+         3. STAGGERED CARDS
+         ============================== */
+      if (!prefersReducedMotion) {
+        var cards = gsap.utils.toArray('.glass-card');
+        gsap.to(cards, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.09,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '#cardsGrid',
+            start: 'top 80%',
+            toggleActions: 'play none none none'
+          }
+        });
+      }
+
+      /* ==============================
+         4. TEXT ANIMATION — SplitType + Counters
+         ============================== */
+      if (!prefersReducedMotion && typeof SplitType !== 'undefined') {
+        var textHeadingSplit = new SplitType('#textHeading', { types: 'chars' });
+
+        gsap.to(textHeadingSplit.chars, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.03,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '#textHeading',
+            start: 'top 80%',
+            toggleActions: 'play none none none'
+          }
+        });
+
+        var textBodySplit = new SplitType('#textBody', { types: 'words' });
+
+        gsap.to(textBodySplit.words, {
+          opacity: 1,
+          duration: 0.3,
+          stagger: 0.03,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '#textBody',
+            start: 'top 80%',
+            toggleActions: 'play none none none'
+          }
+        });
+      }
+
+      /* Counters */
+      if (!prefersReducedMotion) {
+        var counterEls = document.querySelectorAll('.counter-value[data-target]');
+        counterEls.forEach(function (el) {
+          var target = parseInt(el.getAttribute('data-target'), 10);
+          var proxy = { val: 0 };
+
+          gsap.to(proxy, {
+            val: target,
+            duration: 2.1,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: '#countersBlock',
+              start: 'top 80%',
+              toggleActions: 'play none none none'
+            },
+            onUpdate: function () {
+              el.textContent = Math.round(proxy.val);
+            }
+          });
+        });
+      } else {
+        document.querySelectorAll('.counter-value[data-target]').forEach(function (el) {
+          el.textContent = el.getAttribute('data-target');
+        });
+      }
+
+      /* ==============================
+         5. VANTA NET
+         ============================== */
+      var vantaNet = null;
+      if (!prefersReducedMotion && !isMobile && typeof VANTA !== 'undefined') {
+        try {
+          vantaNet = VANTA.NET({
+            el: '#vantaNetBg',
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: false,
+            gyroControls: false,
+            minHeight: 200,
+            minWidth: 200,
+            scale: 1.0,
+            scaleMobile: 1.0,
+            color: 0x00d4ff,
+            backgroundColor: 0x0a0a0a,
+            points: 10,
+            maxDistance: 22,
+            spacing: 18,
+            showDots: true
+          });
+        } catch (e) { /* Vanta init failed silently */ }
+      }
+
+      /* ==============================
+         6. REPLAY BUTTON
+         ============================== */
+      document.getElementById('replayBtn').addEventListener('click', function () {
+        /* Kill all ScrollTriggers so they can re-fire */
+        ScrollTrigger.getAll().forEach(function (st) { st.kill(); });
+
+        /* Reset split text elements */
+        document.querySelectorAll('.char').forEach(function (c) {
+          c.style.opacity = '0';
+          c.style.transform = 'translateY(40px)';
+        });
+        document.querySelectorAll('.word').forEach(function (w) {
+          w.style.opacity = '0';
+        });
+
+        /* Reset cards */
+        document.querySelectorAll('.glass-card').forEach(function (card) {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(40px)';
+        });
+
+        /* Reset counters */
+        document.querySelectorAll('.counter-value[data-target]').forEach(function (el) {
+          el.textContent = '0';
+        });
+
+        /* Reset subtitle and scroll indicator */
+        var sub = document.getElementById('heroSubtitle');
+        var ind = document.getElementById('heroScrollIndicator');
+        if (sub) sub.style.opacity = '0';
+        if (ind) ind.style.opacity = '0';
+
+        /* Reset progress bar */
+        var fill = document.getElementById('progressFill');
+        if (fill) fill.style.width = '0%';
+
+        /* Scroll to top */
+        if (lenis) {
+          lenis.scrollTo(0, { immediate: true });
+        } else {
+          window.scrollTo(0, 0);
+        }
+
+        /* Re-initialize all animations after scroll reset */
+        setTimeout(function () {
+          /* Progress bar */
+          gsap.to('#progressFill', {
+            width: '100%',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: document.body,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 0.3
+            }
+          });
+
+          /* Hero chars */
+          gsap.to('.hero__heading .char', {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.03,
+            ease: 'power2.out',
+            delay: 0.3
+          });
+
+          gsap.to('#heroSubtitle', {
+            opacity: 1,
+            duration: 0.7,
+            delay: 0.9,
+            ease: 'power2.out'
+          });
+
+          gsap.to('#heroScrollIndicator', {
+            opacity: 1,
+            duration: 0.6,
+            delay: 2.1,
+            ease: 'power2.out'
+          });
+
+          /* Marquee */
+          gsap.to('#marqueeText', {
+            x: function () { return -document.getElementById('marqueeText').offsetWidth / 2; },
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '#scrollSection',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true
+            }
+          });
+
+          /* Pin section */
+          var pinTl2 = gsap.timeline({
+            scrollTrigger: {
+              trigger: '#pinSection',
+              start: 'top top',
+              end: '+=150%',
+              pin: true,
+              scrub: 0.6
+            }
+          });
+          pinTl2
+            .from('#pinHeading', { scale: 0.8, opacity: 0, duration: 0.6, ease: 'power2.out' })
+            .from('#pinBody', { y: 30, opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3')
+            .to('#pinHeading', { scale: 1.05, color: '#00d4ff', duration: 0.9 }, '+=0.3');
+
+          /* Cards */
+          var replayCards = gsap.utils.toArray('.glass-card');
+          gsap.to(replayCards, {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.09,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: '#cardsGrid',
+              start: 'top 80%',
+              toggleActions: 'play none none none'
+            }
+          });
+
+          /* Text heading chars */
+          gsap.to('#textHeading .char', {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.03,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: '#textHeading',
+              start: 'top 80%',
+              toggleActions: 'play none none none'
+            }
+          });
+
+          /* Text body words */
+          gsap.to('#textBody .word', {
+            opacity: 1,
+            duration: 0.3,
+            stagger: 0.03,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: '#textBody',
+              start: 'top 80%',
+              toggleActions: 'play none none none'
+            }
+          });
+
+          /* Counters */
+          document.querySelectorAll('.counter-value[data-target]').forEach(function (el) {
+            var target = parseInt(el.getAttribute('data-target'), 10);
+            var proxy = { val: 0 };
+            gsap.to(proxy, {
+              val: target,
+              duration: 2.1,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: '#countersBlock',
+                start: 'top 80%',
+                toggleActions: 'play none none none'
+              },
+              onUpdate: function () {
+                el.textContent = Math.round(proxy.val);
+              }
+            });
+          });
+
+          ScrollTrigger.refresh();
+        }, 100);
+      });
+
+    })();
+  </script>
+</body>
+</html>
