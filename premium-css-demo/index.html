@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium CSS Techniques Demo v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<svg style="position:absolute;width:0;height:0;" aria-hidden="true">
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+</svg>
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root {
+  --bg-base: #09090b;
+  --bg-raised: #111113;
+  --bg-surface: #191a1f;
+  --bg-elevated: #222228;
+  --text-primary: #ededef;
+  --text-secondary: #8a8f98;
+  --text-tertiary: #5c6070;
+  --accent-violet: #8b5cf6;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-rose: #f43f5e;
+  --accent-amber: #f59e0b;
+  --accent-emerald: #10b981;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.12);
+  --text-hero: clamp(2.5rem, 1.8rem + 3vw, 4.5rem);
+  --text-h1: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+  --text-h2: clamp(1.5rem, 1.155rem + 1.47vw, 2.25rem);
+  --text-h3: clamp(1.313rem, 1.054rem + 1.1vw, 1.875rem);
+  --text-h4: clamp(1.125rem, 0.952rem + 0.74vw, 1.5rem);
+  --text-lg: clamp(1rem, 0.943rem + 0.24vw, 1.125rem);
+  --text-base: clamp(0.938rem, 0.909rem + 0.12vw, 1rem);
+  --text-sm: clamp(0.813rem, 0.784rem + 0.12vw, 0.875rem);
+  --space-section: clamp(4rem, 2rem + 7vw, 8rem);
+  --space-container: clamp(1.125rem, 0.262rem + 3.68vw, 3rem);
+  --space-lg: clamp(1.5rem, 1.069rem + 1.84vw, 2.5rem);
+  --space-md: clamp(1rem, 0.712rem + 1.23vw, 1.75rem);
+  --space-sm: clamp(0.75rem, 0.606rem + 0.61vw, 1.125rem);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3,h4,h5,h6 { text-wrap: balance; }
+p,li,blockquote,figcaption { text-wrap: pretty; }
+
+/* ============================================
+   SCROLL PROGRESS BAR
+   ============================================ */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan), var(--accent-emerald));
+  z-index: 200;
+  width: 0%;
+  transition: none;
+}
+
+/* ============================================
+   GLOBAL CURSOR GLOW
+   ============================================ */
+.cursor-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.6s;
+  opacity: 0;
+}
+
+.cursor-glow.active { opacity: 1; }
+
+/* ============================================
+   SHARED
+   ============================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-container); }
+.section { padding: var(--space-section) 0; position: relative; }
+
+.section-label {
+  display: inline-block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-violet);
+  margin-bottom: var(--space-sm);
+}
+
+.section-title {
+  font-size: var(--text-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.section-desc {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.7;
+}
+
+.has-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  filter: url(#grain);
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.divider-fade {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 80%, transparent 100%);
+}
+
+/* Animated beam on dividers */
+.divider-beam {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.06) 80%, transparent 100%);
+  overflow: hidden;
+}
+
+.divider-beam::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -100px;
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent-violet), var(--accent-cyan), transparent);
+  animation: beamSlide 4.2s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+@keyframes beamSlide {
+  0%   { left: -100px; }
+  100% { left: 100%; }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Staggered children */
+.reveal-stagger .reveal:nth-child(2) { transition-delay: 0.1s; }
+.reveal-stagger .reveal:nth-child(3) { transition-delay: 0.2s; }
+.reveal-stagger .reveal:nth-child(4) { transition-delay: 0.3s; }
+.reveal-stagger .reveal:nth-child(5) { transition-delay: 0.4s; }
+.reveal-stagger .reveal:nth-child(6) { transition-delay: 0.5s; }
+
+/* ============================================
+   NAV
+   ============================================ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0.875rem var(--space-container);
+  background: rgba(9, 9, 11, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #f0f0f5, var(--accent-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-links { display: flex; gap: 1.75rem; list-style: none; }
+
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent-violet);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a:hover::after { width: 100%; }
+
+@media (max-width: 768px) { .nav-links { display: none; } }
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(139,92,246,0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 20%, rgba(59,130,246,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(244,63,94,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 70%, rgba(6,182,212,0.25) 0%, transparent 50%),
+    linear-gradient(135deg, #0a0a1a 0%, #111127 100%);
+  background-size: 200% 200%;
+  animation: meshDrift 21s ease-in-out infinite alternate;
+}
+
+@keyframes meshDrift {
+  0%   { background-position: 0% 0%; }
+  33%  { background-position: 50% 30%; }
+  66%  { background-position: 100% 60%; }
+  100% { background-position: 20% 100%; }
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  animation: orbFloat 14s ease-in-out infinite alternate;
+}
+
+.hero-orb--1 { width: 600px; height: 600px; background: var(--accent-violet); top: -20%; left: 5%; opacity: 0.35; }
+.hero-orb--2 { width: 450px; height: 450px; background: var(--accent-cyan); top: 35%; right: -8%; opacity: 0.3; animation-delay: -4.2s; animation-duration: 21s; }
+.hero-orb--3 { width: 400px; height: 400px; background: var(--accent-rose); bottom: -15%; left: 25%; opacity: 0.2; animation-delay: -7s; animation-duration: 9s; }
+
+@keyframes orbFloat {
+  from { transform: translate(0, 0) scale(1) rotate(0deg); }
+  to   { transform: translate(50px, 30px) scale(1.1) rotate(3deg); }
+}
+
+/* Morphing SVG blob */
+.hero-blob {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.hero-blob path {
+  fill: url(#blobGradient);
+}
+
+.hero-grain { position: absolute; inset: 0; filter: url(#grain); opacity: 0.04; mix-blend-mode: overlay; pointer-events: none; }
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 55%);
+  mask-image: radial-gradient(ellipse at center, black 10%, transparent 55%);
+  pointer-events: none;
+}
+
+/* Hero entrance animations */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 840px;
+  padding: 0 var(--space-container);
+}
+
+.hero-entrance > * {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: heroFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-entrance > *:nth-child(1) { animation-delay: 0.3s; }
+.hero-entrance > *:nth-child(2) { animation-delay: 0.5s; }
+.hero-entrance > *:nth-child(3) { animation-delay: 0.7s; }
+.hero-entrance > *:nth-child(4) { animation-delay: 0.9s; }
+
+@keyframes heroFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 100px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent-violet);
+  margin-bottom: var(--space-md);
+  backdrop-filter: blur(8px);
+}
+
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+  animation: pulse 2.1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+  50% { opacity: 0.6; transform: scale(1.5); box-shadow: 0 0 16px rgba(16,185,129,0.3); }
+}
+
+.hero-title {
+  font-size: var(--text-hero);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin-bottom: var(--space-md);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #f0f0f5 10%, var(--accent-violet) 45%, var(--accent-cyan) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-animated {
+  background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4, #10b981, #8b5cf6);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textGradientShift 6.3s ease infinite;
+}
+
+@keyframes textGradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto var(--space-lg);
+}
+
+.hero-cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* Magnetic buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 2rem;
+  border-radius: 12px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  width: fit-content;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.btn-primary {
+  background: var(--text-primary);
+  color: var(--bg-base);
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-cyan));
+  filter: blur(16px);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s;
+}
+
+.btn-primary:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255,255,255,0.12);
+}
+
+.btn-primary:hover::after { opacity: 0.5; }
+
+.btn-ghost {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* Hero scroll indicator */
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  animation: heroFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
+}
+
+.scroll-mouse {
+  width: 24px;
+  height: 36px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  position: relative;
+}
+
+.scroll-mouse::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 8px;
+  margin-left: -1.5px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 2px;
+  animation: scrollDot 2.1s ease-in-out infinite;
+}
+
+@keyframes scrollDot {
+  0%,100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(10px); opacity: 0.2; }
+}
+
+.scroll-label {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
+   MARQUEE STRIP
+   ============================================ */
+.marquee-section {
+  padding: var(--space-lg) 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-track {
+  display: flex;
+  animation: marqueeScroll 30s linear infinite;
+  width: fit-content;
+}
+
+.marquee-track:hover { animation-play-state: paused; }
+
+.marquee-group {
+  display: flex;
+  gap: 3rem;
+  padding: 0 1.5rem;
+  flex-shrink: 0;
+}
+
+.marquee-item {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  transition: color 0.3s;
+  letter-spacing: -0.01em;
+}
+
+.marquee-item:hover { color: var(--text-secondary); }
+
+.marquee-dot {
+  color: var(--accent-violet);
+  opacity: 0.4;
+}
+
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Edge fades */
+.marquee-section::before,
+.marquee-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-section::before { left: 0; background: linear-gradient(90deg, var(--bg-base), transparent); }
+.marquee-section::after { right: 0; background: linear-gradient(-90deg, var(--bg-base), transparent); }
+
+/* ============================================
+   GLASS CARDS (with 3D tilt)
+   ============================================ */
+.glass-section {
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(139,92,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(6,182,212,0.06) 0%, transparent 50%),
+    var(--bg-base);
+}
+
+.glass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  perspective: 1000px;
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: var(--space-lg);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: border-color 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(350px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(139,92,246,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.glass-card:hover::before { opacity: 1; }
+
+.glass-card:hover {
+  border-color: var(--border-default);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Shine sweep on hover */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  transition: none;
+  pointer-events: none;
+}
+
+.glass-card:hover::after {
+  animation: shineSweep 0.6s ease forwards;
+}
+
+@keyframes shineSweep {
+  to { left: 150%; }
+}
+
+.glass-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+}
+
+.glass-card-icon--violet { background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2); color: var(--accent-violet); }
+.glass-card-icon--blue { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.2); color: var(--accent-blue); }
+.glass-card-icon--cyan { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.2); color: var(--accent-cyan); }
+.glass-card-icon--emerald { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2); color: var(--accent-emerald); }
+.glass-card-icon--amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2); color: var(--accent-amber); }
+.glass-card-icon--rose { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.2); color: var(--accent-rose); }
+
+.glass-card h3 { font-size: var(--text-h4); font-weight: 600; margin-bottom: 0.5rem; }
+.glass-card p { font-size: var(--text-base); color: var(--text-secondary); line-height: 1.6; }
+
+/* ============================================
+   BENTO GRID
+   ============================================ */
+.bento-section { background: var(--bg-base); }
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border-subtle);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  margin-top: var(--space-lg);
+}
+
+.bento-tile {
+  background: var(--bg-base);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.6s;
+}
+
+.bento-tile:hover { background: #0d0d10; }
+
+.bento-tile--wide { grid-column: span 2; }
+
+.bento-tile__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.6s;
+  opacity: 0.3;
+}
+
+.bento-tile:hover .bento-tile__bg { opacity: 1; }
+
+.bento-tile__content { position: relative; z-index: 2; }
+
+.bento-tile__tag {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.bento-tile__title { font-size: var(--text-h4); font-weight: 600; margin-bottom: 0.375rem; }
+.bento-tile__desc { font-size: var(--text-sm); color: var(--text-secondary); max-width: 32ch; }
+
+.bento-tile__graphic {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  margin-top: var(--space-md);
+}
+
+/* Bento demos */
+.bento-mesh-demo {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(139,92,246,0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(6,182,212,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(244,63,94,0.4) 0%, transparent 50%),
+    #131320;
+  background-size: 200% 200%;
+  animation: meshDrift 14s ease-in-out infinite alternate;
+}
+
+.bento-chart svg { width: 100%; height: auto; overflow: visible; }
+
+.chart-line { fill: none; stroke: var(--accent-violet); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chart-area { fill: url(#chartGradient); opacity: 0.3; }
+.chart-line-animated { stroke-dasharray: 500; stroke-dashoffset: 500; }
+.chart-line-animated.animate { animation: drawLine 2.1s ease forwards; }
+
+@keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+.bento-dots {
+  width: 100%;
+  height: 100px;
+  border-radius: 12px;
+  background-image: radial-gradient(circle, rgba(139,92,246,0.3) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  -webkit-mask-image: radial-gradient(ellipse, black 30%, transparent 70%);
+  mask-image: radial-gradient(ellipse, black 30%, transparent 70%);
+}
+
+.bento-stat-number {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bento-stat-label { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 0.25rem; }
+
+.bento-icons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.bento-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-tile:hover .bento-icon:nth-child(odd) { transform: translateY(-4px); border-color: rgba(139,92,246,0.3); color: var(--accent-violet); background: rgba(139,92,246,0.06); }
+.bento-tile:hover .bento-icon:nth-child(even) { transform: translateY(-6px); border-color: rgba(6,182,212,0.3); color: var(--accent-cyan); background: rgba(6,182,212,0.06); }
+
+/* UI Mockup tile */
+.bento-mockup {
+  width: 95%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px 12px 0 0;
+  padding: 0.75rem 1rem;
+  transform: translateY(16px);
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-tile:hover .bento-mockup { transform: translateY(4px); }
+
+.bento-mockup-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.bento-mockup-bar span { width: 8px; height: 8px; border-radius: 50%; }
+.bento-mockup-bar span:nth-child(1) { background: #ff5f57; }
+.bento-mockup-bar span:nth-child(2) { background: #febc2e; }
+.bento-mockup-bar span:nth-child(3) { background: #28c840; }
+
+.bento-mockup-lines div {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 6px;
+}
+
+.bento-mockup-lines div:nth-child(1) { width: 70%; background: rgba(139,92,246,0.15); }
+.bento-mockup-lines div:nth-child(2) { width: 90%; }
+.bento-mockup-lines div:nth-child(3) { width: 50%; }
+.bento-mockup-lines div:nth-child(4) { width: 80%; background: rgba(6,182,212,0.1); }
+
+@media (max-width: 768px) {
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-tile--wide { grid-column: span 1; }
+}
+
+/* ============================================
+   CODE MOCKUPS
+   ============================================ */
+.code-section {
+  background: radial-gradient(ellipse at 60% 30%, rgba(59,130,246,0.06) 0%, transparent 50%), var(--bg-base);
+}
+
+.code-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.code-editor, .terminal {
+  background: #0c0c14;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.code-editor:hover, .terminal:hover {
+  border-color: var(--border-default);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-dot--red { background: #ff5f57; }
+.code-dot--yellow { background: #febc2e; }
+.code-dot--green { background: #28c840; }
+.code-filename { margin-left: 0.5rem; font-size: 0.75rem; color: var(--text-tertiary); }
+
+.code-body { padding: 1.25rem; line-height: 1.8; overflow-x: auto; }
+.code-body code { display: block; white-space: pre; }
+
+.tk-keyword { color: #c678dd; }
+.tk-function { color: #61afef; }
+.tk-string { color: #98c379; }
+.tk-comment { color: #5c6370; font-style: italic; }
+.tk-number { color: #d19a66; }
+.tk-property { color: #e06c75; }
+.tk-operator { color: #56b6c2; }
+.tk-punctuation { color: #abb2bf; }
+.tk-variable { color: #e5c07b; }
+
+.terminal-body { padding: 1.25rem; line-height: 2; }
+.terminal-prompt { color: var(--accent-emerald); }
+.terminal-cmd { color: var(--text-primary); }
+.terminal-output { color: var(--text-secondary); }
+.terminal-success { color: var(--accent-emerald); }
+
+/* Typing animation for terminal */
+.terminal-line { overflow: hidden; }
+.terminal-line.typing .terminal-cmd {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 0;
+  border-right: 2px solid var(--accent-emerald);
+  animation: typeCmd 1.4s steps(40) forwards, cursorBlink 0.7s step-end infinite;
+}
+
+.terminal-line.typing.active .terminal-cmd { max-width: 100%; }
+
+@keyframes typeCmd { to { max-width: 600px; } }
+@keyframes cursorBlink { 50% { border-color: transparent; } }
+
+/* ============================================
+   ANIMATED BORDERS
+   ============================================ */
+@property --angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+.borders-section { background: var(--bg-base); }
+
+.borders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.border-card-spin {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle), #8b5cf6, #3b82f6, #06b6d4, #10b981, #f59e0b, #f43f5e, #8b5cf6);
+  animation: borderSpin 4.2s linear infinite;
+}
+
+.border-card-spin > div { background: var(--bg-base); border-radius: 14.5px; padding: var(--space-lg); height: 100%; }
+@keyframes borderSpin { to { --angle: 360deg; } }
+
+.border-card-comet {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle), #8b5cf6, #06b6d4, transparent 30%, transparent 70%, #8b5cf6);
+  animation: borderSpin 3s linear infinite;
+}
+
+.border-card-comet > div { background: var(--bg-base); border-radius: 14.5px; padding: var(--space-lg); height: 100%; }
+
+.border-card-glow {
+  position: relative;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-lg);
+  overflow: visible;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.border-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.5), rgba(59,130,246,0.5), rgba(6,182,212,0.5));
+  filter: blur(24px);
+  opacity: 0;
+  transition: opacity 0.6s;
+  z-index: -1;
+}
+
+.border-card-glow:hover { border-color: var(--border-strong); transform: translateY(-4px); }
+.border-card-glow:hover::before { opacity: 1; }
+
+.border-card-title { font-size: var(--text-h4); font-weight: 600; margin-bottom: 0.5rem; }
+.border-card-desc { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+
+/* ============================================
+   METRICS
+   ============================================ */
+.metrics-section {
+  background: radial-gradient(ellipse at 40% 50%, rgba(16,185,129,0.06) 0%, transparent 50%), var(--bg-base);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.metric-card {
+  text-align: center;
+  padding: var(--space-lg);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metric-card:hover { transform: translateY(-6px); border-color: var(--border-default); box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+
+.metric-number {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-number--violet { background: linear-gradient(135deg, var(--accent-violet), var(--accent-blue)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-number--cyan { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-number--emerald { background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-number--amber { background: linear-gradient(135deg, var(--accent-amber), var(--accent-rose)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+.metric-label { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 0.375rem; }
+
+.metric-spark { display: block; margin: 0.75rem auto 0; overflow: visible; }
+.spark-line { fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Circular progress ring */
+.metric-ring {
+  display: block;
+  margin: 0 auto 0.5rem;
+}
+
+.ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 4; }
+.ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: stroke-dashoffset 2.1s cubic-bezier(0.16, 1, 0.3, 1); }
+.ring-fill.animate { stroke-dashoffset: 0; }
+
+/* ============================================
+   TEXT EFFECTS
+   ============================================ */
+.text-section { background: var(--bg-base); }
+
+.text-demos { display: flex; flex-direction: column; gap: var(--space-lg); margin-top: var(--space-lg); align-items: flex-start; }
+.text-demo-row { width: 100%; }
+.text-demo-label { font-size: var(--text-sm); color: var(--text-tertiary); margin-bottom: 0.75rem; font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+
+.glow-text {
+  font-size: var(--text-h1);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(139,92,246,0.5), 0 0 40px rgba(139,92,246,0.2), 0 0 80px rgba(139,92,246,0.1);
+}
+
+.stroke-text {
+  font-size: var(--text-h1);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.2);
+  transition: color 0.6s, -webkit-text-stroke-color 0.6s;
+  cursor: pointer;
+}
+
+.stroke-text:hover { color: var(--text-primary); -webkit-text-stroke-color: transparent; }
+
+/* Character stagger */
+.char-stagger span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.char-stagger.visible span { opacity: 1; transform: translateY(0); }
+
+.reveal-text {
+  overflow: hidden;
+  font-size: var(--text-h1);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.reveal-text span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-text.visible span { transform: translateY(0); }
+.reveal-text span:nth-child(2) { transition-delay: 0.06s; }
+.reveal-text span:nth-child(3) { transition-delay: 0.12s; }
+.reveal-text span:nth-child(4) { transition-delay: 0.18s; }
+.reveal-text span:nth-child(5) { transition-delay: 0.24s; }
+
+/* ============================================
+   PARTICLES
+   ============================================ */
+.particles-section { position: relative; min-height: 500px; display: flex; align-items: center; overflow: hidden; }
+.particles-canvas { position: absolute; inset: 0; z-index: 0; }
+.particles-content { position: relative; z-index: 2; }
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer { padding: var(--space-section) 0 var(--space-lg); text-align: center; }
+.footer-text { font-size: var(--text-sm); color: var(--text-tertiary); }
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg, .hero-orb, .bento-mesh-demo, .border-card-spin, .border-card-comet, .hero-badge-dot, .marquee-track, .divider-beam::after { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-entrance > * { opacity: 1; transform: none; animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Scroll Progress -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- Global Cursor Glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Premium CSS v2</a>
+    <ul class="nav-links">
+      <li><a href="#glass">Glass</a></li>
+      <li><a href="#bento">Bento</a></li>
+      <li><a href="#code">Code</a></li>
+      <li><a href="#borders">Borders</a></li>
+      <li><a href="#metrics">Metrics</a></li>
+      <li><a href="#text">Text</a></li>
+      <li><a href="#particles">Particles</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-orb hero-orb--1"></div>
+  <div class="hero-orb hero-orb--2"></div>
+  <div class="hero-orb hero-orb--3"></div>
+
+  <!-- Morphing blob -->
+  <svg class="hero-blob" viewBox="0 0 500 500">
+    <defs>
+      <linearGradient id="blobGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8b5cf6"/>
+        <stop offset="50%" stop-color="#06b6d4"/>
+        <stop offset="100%" stop-color="#f43f5e"/>
+      </linearGradient>
+    </defs>
+    <path d="M250,50 C350,50 450,150 450,250 C450,350 350,450 250,450 C150,450 50,350 50,250 C50,150 150,50 250,50Z">
+      <animate attributeName="d" dur="14s" repeatCount="indefinite"
+        values="M250,50 C350,50 450,150 450,250 C450,350 350,450 250,450 C150,450 50,350 50,250 C50,150 150,50 250,50Z;
+                M280,60 C380,80 440,180 430,270 C420,370 330,440 240,430 C140,420 70,340 60,240 C50,140 170,40 280,60Z;
+                M260,40 C370,60 460,140 450,260 C440,360 340,460 230,450 C130,440 40,360 50,240 C60,130 160,30 260,40Z;
+                M250,50 C350,50 450,150 450,250 C450,350 350,450 250,450 C150,450 50,350 50,250 C50,150 150,50 250,50Z"/>
+    </path>
+  </svg>
+
+  <div class="hero-grain"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content hero-entrance">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      12 techniques, zero design tools
+    </div>
+
+    <h1 class="hero-title">
+      <span class="gradient-text">Premium visuals,</span><br>
+      <span class="gradient-text-animated">entirely from code.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Every effect on this page is built with HTML, CSS, and minimal JavaScript.
+      No Figma. No Photoshop. No Illustrator.
+    </p>
+
+    <div class="hero-cta-group">
+      <a href="#glass" class="btn btn-primary" data-magnetic>Explore effects</a>
+      <a href="#code" class="btn btn-ghost" data-magnetic>View source</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <div class="scroll-mouse"></div>
+    <span class="scroll-label">Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-group">
+      <span class="marquee-item">Mesh Gradients</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Glassmorphism</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">3D Card Tilt</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Cursor Spotlight</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Animated Borders</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Grain Texture</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Aurora Orbs</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Bento Grid</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Particle Canvas</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Gradient Text</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">SVG Morphing</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Scroll Reveal</span><span class="marquee-dot"> / </span>
+    </div>
+    <div class="marquee-group">
+      <span class="marquee-item">Mesh Gradients</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Glassmorphism</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">3D Card Tilt</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Cursor Spotlight</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Animated Borders</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Grain Texture</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Aurora Orbs</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Bento Grid</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Particle Canvas</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Gradient Text</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">SVG Morphing</span><span class="marquee-dot"> / </span>
+      <span class="marquee-item">Scroll Reveal</span><span class="marquee-dot"> / </span>
+    </div>
+  </div>
+</div>
+
+<!-- GLASS CARDS -->
+<section class="section glass-section has-grain" id="glass">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Glassmorphism + 3D Tilt</span>
+      <h2 class="section-title">Frosted glass with perspective tracking</h2>
+      <p class="section-desc">
+        Backdrop-filter blur, spotlight cursor, and 3D perspective tilt
+        that follows your mouse. Hover over the cards.
+      </p>
+    </div>
+
+    <div class="glass-grid reveal-stagger">
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--violet">01</div>
+        <h3>Mesh Gradients</h3>
+        <p>Layered radial-gradients with animated background-position. CSS-only, no WebGL.</p>
+      </div>
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--blue">02</div>
+        <h3>Grain Overlay</h3>
+        <p>SVG feTurbulence generates procedural noise. Mix-blend-mode overlay at 3.5% opacity.</p>
+      </div>
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--cyan">03</div>
+        <h3>3D Card Tilt</h3>
+        <p>Perspective transform tracks mouse position. rotateX and rotateY with smooth lerp.</p>
+      </div>
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--emerald">04</div>
+        <h3>Cursor Spotlight</h3>
+        <p>Radial-gradient positioned via CSS custom properties. Updated on mousemove.</p>
+      </div>
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--amber">05</div>
+        <h3>Shine Sweep</h3>
+        <p>A translucent gradient slides across the card on hover. Pure CSS animation.</p>
+      </div>
+      <div class="glass-card reveal" data-tilt data-spotlight>
+        <div class="glass-card-icon glass-card-icon--rose">06</div>
+        <h3>Magnetic Buttons</h3>
+        <p>Buttons shift toward cursor on hover. Transform with smooth easing. Scroll up to try.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- BENTO GRID -->
+<section class="section bento-section" id="bento">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Bento Grid</span>
+      <h2 class="section-title">Every tile is a mini product demo</h2>
+      <p class="section-desc">CSS Grid with 1px gaps. Each tile has ambient glow, hover reveal, and a live graphic.</p>
+    </div>
+
+    <div class="bento-grid reveal">
+      <div class="bento-tile bento-tile--wide">
+        <div class="bento-tile__bg" style="background: radial-gradient(ellipse at 70% 100%, rgba(139,92,246,0.08) 0%, transparent 60%);"></div>
+        <div class="bento-tile__content">
+          <span class="bento-tile__tag" style="color: var(--accent-violet);">Visual</span>
+          <h3 class="bento-tile__title">Mesh gradients from code</h3>
+          <p class="bento-tile__desc">Layered radial-gradients with animated positions. No WebGL required.</p>
+        </div>
+        <div class="bento-tile__graphic"><div class="bento-mesh-demo"></div></div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="bento-tile__bg" style="background: radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.08) 0%, transparent 60%);"></div>
+        <div class="bento-tile__content">
+          <span class="bento-tile__tag" style="color: var(--accent-emerald);">Performance</span>
+          <h3 class="bento-tile__title">Uptime</h3>
+        </div>
+        <div class="bento-tile__graphic">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;">
+            <span class="bento-stat-number" data-counter="99.97" data-suffix="%">0%</span>
+            <span class="bento-stat-label">Last 90 days</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="bento-tile__bg" style="background: radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.08) 0%, transparent 60%);"></div>
+        <div class="bento-tile__content">
+          <span class="bento-tile__tag" style="color: var(--accent-blue);">Analytics</span>
+          <h3 class="bento-tile__title">Revenue trend</h3>
+          <p class="bento-tile__desc">SVG path with stroke-dasharray draw</p>
+        </div>
+        <div class="bento-tile__graphic">
+          <div class="bento-chart">
+            <svg viewBox="0 0 300 80">
+              <defs><linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.4"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>
+              <path class="chart-area" d="M0,60 C30,55 60,20 90,35 C120,50 150,15 180,25 C210,35 240,10 270,15 L300,8 L300,80 L0,80 Z"/>
+              <path class="chart-line chart-line-animated" d="M0,60 C30,55 60,20 90,35 C120,50 150,15 180,25 C210,35 240,10 270,15 L300,8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="bento-tile__bg" style="background: radial-gradient(ellipse at 50% 100%, rgba(244,63,94,0.06) 0%, transparent 60%);"></div>
+        <div class="bento-tile__content">
+          <span class="bento-tile__tag" style="color: var(--accent-rose);">Preview</span>
+          <h3 class="bento-tile__title">UI mockup tile</h3>
+          <p class="bento-tile__desc">Fake product UI that lifts on hover</p>
+        </div>
+        <div class="bento-tile__graphic">
+          <div class="bento-mockup">
+            <div class="bento-mockup-bar"><span></span><span></span><span></span></div>
+            <div class="bento-mockup-lines"><div></div><div></div><div></div><div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-tile bento-tile--wide">
+        <div class="bento-tile__bg" style="background: radial-gradient(ellipse at 30% 100%, rgba(245,158,11,0.06) 0%, transparent 60%);"></div>
+        <div class="bento-tile__content">
+          <span class="bento-tile__tag" style="color: var(--accent-amber);">Integrations</span>
+          <h3 class="bento-tile__title">Icon clusters with staggered hover</h3>
+          <p class="bento-tile__desc">Grid of icon tiles that lift on parent hover with alternating timing.</p>
+        </div>
+        <div class="bento-tile__graphic">
+          <div class="bento-icons">
+            <div class="bento-icon">JS</div><div class="bento-icon">TS</div><div class="bento-icon">PY</div><div class="bento-icon">RS</div><div class="bento-icon">GO</div>
+            <div class="bento-icon">RB</div><div class="bento-icon">SH</div><div class="bento-icon">C#</div><div class="bento-icon">PH</div><div class="bento-icon">SW</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- CODE MOCKUPS -->
+<section class="section code-section" id="code">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Code Mockups</span>
+      <h2 class="section-title">Editor and terminal, from HTML</h2>
+      <p class="section-desc">Styled pre/code blocks with token-based syntax highlighting. Live HTML you can select and copy.</p>
+    </div>
+    <div class="code-grid">
+      <div class="code-editor reveal">
+        <div class="code-header"><span class="code-dot code-dot--red"></span><span class="code-dot code-dot--yellow"></span><span class="code-dot code-dot--green"></span><span class="code-filename">api.ts</span></div>
+        <div class="code-body"><code><span class="tk-comment">// Create a new project via API</span>
+<span class="tk-keyword">const</span> <span class="tk-variable">project</span> <span class="tk-operator">=</span> <span class="tk-keyword">await</span> <span class="tk-function">client</span>.<span class="tk-function">create</span>({
+  <span class="tk-property">name</span>: <span class="tk-string">'lead-hunter-media'</span>,
+  <span class="tk-property">framework</span>: <span class="tk-string">'html'</span>,
+  <span class="tk-property">deploy</span>: <span class="tk-string">'vercel'</span>,
+  <span class="tk-property">responsive</span>: {
+    <span class="tk-property">min</span>: <span class="tk-number">350</span>,
+    <span class="tk-property">max</span>: <span class="tk-number">1400</span>,
+    <span class="tk-property">fluid</span>: <span class="tk-keyword">true</span>
+  }
+});
+
+<span class="tk-keyword">const</span> { <span class="tk-variable">url</span>, <span class="tk-variable">status</span> } <span class="tk-operator">=</span> <span class="tk-keyword">await</span> <span class="tk-variable">project</span>.<span class="tk-function">deploy</span>();
+<span class="tk-comment">// https://lead-hunter-media.vercel.app</span></code></div>
+      </div>
+      <div class="terminal reveal">
+        <div class="code-header"><span class="code-dot code-dot--red"></span><span class="code-dot code-dot--yellow"></span><span class="code-dot code-dot--green"></span><span class="code-filename">terminal</span></div>
+        <div class="terminal-body">
+          <div><span class="terminal-prompt">~</span> <span class="terminal-cmd">git checkout -b feature/hero-section</span></div>
+          <div><span class="terminal-output">Switched to a new branch 'feature/hero-section'</span></div>
+          <div>&nbsp;</div>
+          <div><span class="terminal-prompt">~</span> <span class="terminal-cmd">git add index.html style.css</span></div>
+          <div><span class="terminal-prompt">~</span> <span class="terminal-cmd">git commit -m "Add hero with mesh gradient"</span></div>
+          <div><span class="terminal-output">[feature/hero-section 3a1f8c2] Add hero with mesh gradient</span></div>
+          <div><span class="terminal-output"> 2 files changed, 247 insertions(+)</span></div>
+          <div>&nbsp;</div>
+          <div><span class="terminal-prompt">~</span> <span class="terminal-cmd">gh pr create --title "Hero section"</span></div>
+          <div><span class="terminal-success">Created pull request #42</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- ANIMATED BORDERS -->
+<section class="section borders-section" id="borders">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Animated Borders</span>
+      <h2 class="section-title">Conic gradients that spin</h2>
+      <p class="section-desc">CSS @property animates the starting angle. Three variations: spectrum, comet, and hover glow.</p>
+    </div>
+    <div class="borders-grid">
+      <div class="border-card-spin reveal"><div><div class="border-card-title">Full Spectrum</div><p class="border-card-desc">conic-gradient with all brand colors cycling at a continuous rotation.</p></div></div>
+      <div class="border-card-comet reveal"><div><div class="border-card-title">Comet Tail</div><p class="border-card-desc">Transparent gaps create a single bright streak that chases around the border.</p></div></div>
+      <div class="border-card-glow reveal"><div class="border-card-title">Hover Glow</div><p class="border-card-desc">On hover, a blurred gradient pseudo-element creates a soft ambient glow halo.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- METRICS -->
+<section class="section metrics-section has-grain" id="metrics">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Data as Design</span>
+      <h2 class="section-title">Counters, sparklines, and rings</h2>
+      <p class="section-desc">Numbers count up on scroll. SVG sparklines and circular progress rings add visual context.</p>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card reveal">
+        <svg class="metric-ring" width="64" height="64" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="40"/>
+          <circle class="ring-fill" cx="44" cy="44" r="40" stroke="#8b5cf6" style="stroke-dashoffset: 25.12;" transform="rotate(-90 44 44)" data-ring="90"/>
+        </svg>
+        <div class="metric-number metric-number--violet" data-counter="2847">0</div>
+        <div class="metric-label">Projects shipped</div>
+        <svg class="metric-spark" viewBox="0 0 80 24" width="80" height="24"><polyline class="spark-line" stroke="#8b5cf6" points="0,18 10,14 20,16 30,8 40,12 50,4 60,9 70,3 80,6"/></svg>
+      </div>
+      <div class="metric-card reveal">
+        <svg class="metric-ring" width="64" height="64" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="40"/>
+          <circle class="ring-fill" cx="44" cy="44" r="40" stroke="#06b6d4" style="stroke-dashoffset: 2.51;" transform="rotate(-90 44 44)" data-ring="99"/>
+        </svg>
+        <div class="metric-number metric-number--cyan" data-counter="99.9" data-suffix="%">0%</div>
+        <div class="metric-label">Uptime SLA</div>
+        <svg class="metric-spark" viewBox="0 0 80 24" width="80" height="24"><polyline class="spark-line" stroke="#06b6d4" points="0,6 10,5 20,6 30,4 40,5 50,3 60,4 70,3 80,2"/></svg>
+      </div>
+      <div class="metric-card reveal">
+        <svg class="metric-ring" width="64" height="64" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="40"/>
+          <circle class="ring-fill" cx="44" cy="44" r="40" stroke="#10b981" style="stroke-dashoffset: 175.84;" transform="rotate(-90 44 44)" data-ring="30"/>
+        </svg>
+        <div class="metric-number metric-number--emerald" data-counter="142" data-suffix="ms">0ms</div>
+        <div class="metric-label">Avg response</div>
+        <svg class="metric-spark" viewBox="0 0 80 24" width="80" height="24"><polyline class="spark-line" stroke="#10b981" points="0,20 10,16 20,18 30,12 40,14 50,8 60,10 70,6 80,4"/></svg>
+      </div>
+      <div class="metric-card reveal">
+        <svg class="metric-ring" width="64" height="64" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="40"/>
+          <circle class="ring-fill" cx="44" cy="44" r="40" stroke="#f59e0b" style="stroke-dashoffset: 75.36;" transform="rotate(-90 44 44)" data-ring="70"/>
+        </svg>
+        <div class="metric-number metric-number--amber" data-counter="4.2" data-suffix="M">0M</div>
+        <div class="metric-label">API calls / day</div>
+        <svg class="metric-spark" viewBox="0 0 80 24" width="80" height="24"><polyline class="spark-line" stroke="#f59e0b" points="0,20 10,18 20,15 30,16 40,12 50,10 60,8 70,5 80,3"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- TEXT EFFECTS -->
+<section class="section text-section" id="text">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Typography</span>
+      <h2 class="section-title">Text effects that elevate</h2>
+      <p class="section-desc">Gradient fills, glow shadows, stroke outlines, character staggers, and word reveals.</p>
+    </div>
+    <div class="text-demos">
+      <div class="text-demo-row reveal">
+        <div class="text-demo-label">// gradient-text</div>
+        <h2 class="gradient-text" style="font-size: var(--text-h1); font-weight: 800; letter-spacing: -0.03em;">Ship faster than your competitors</h2>
+      </div>
+      <div class="text-demo-row reveal">
+        <div class="text-demo-label">// animated-gradient-text</div>
+        <h2 class="gradient-text-animated" style="font-size: var(--text-h1); font-weight: 800; letter-spacing: -0.03em;">Colors that shift and breathe</h2>
+      </div>
+      <div class="text-demo-row reveal">
+        <div class="text-demo-label">// glow-text</div>
+        <h2 class="glow-text">Illuminated headlines</h2>
+      </div>
+      <div class="text-demo-row reveal">
+        <div class="text-demo-label">// stroke-text (hover me)</div>
+        <h2 class="stroke-text">Outlined to filled</h2>
+      </div>
+      <div class="text-demo-row">
+        <div class="text-demo-label">// char-stagger (scroll triggered)</div>
+        <h2 class="char-stagger reveal" style="font-size: var(--text-h1); font-weight: 800; letter-spacing: -0.03em;" data-stagger>Every letter arrives</h2>
+      </div>
+      <div class="text-demo-row">
+        <div class="text-demo-label">// reveal-text (word by word)</div>
+        <h2 class="reveal-text reveal"><span>Words&nbsp;</span><span>that&nbsp;</span><span>slide&nbsp;</span><span>into&nbsp;</span><span>view</span></h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-beam"></div>
+
+<!-- PARTICLES -->
+<section class="section particles-section has-grain" id="particles">
+  <canvas class="particles-canvas" id="particleCanvas"></canvas>
+  <div class="container">
+    <div class="particles-content">
+      <div class="reveal" style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <span class="section-label">Canvas</span>
+        <h2 class="section-title" style="text-align: center;">Particle constellation</h2>
+        <p class="section-desc" style="text-align: center; margin: var(--space-sm) auto 0;">
+          HTML5 Canvas with requestAnimationFrame. Particles drift with glow,
+          lines connect nearby nodes. Mouse adds a gravitational node with cyan connections.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-fade"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <p class="footer-text">
+      Every effect on this page is pure HTML, CSS, and vanilla JS.<br>
+      No frameworks. No build step. No design tools. One file.
+    </p>
+  </div>
+</footer>
+
+<script>
+/* Scroll Progress Bar */
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('scrollProgress').style.width = pct + '%';
+}, { passive: true });
+
+/* Global Cursor Glow */
+const glow = document.getElementById('cursorGlow');
+let glowActive = false;
+document.addEventListener('mousemove', (e) => {
+  if (!glowActive) { glow.classList.add('active'); glowActive = true; }
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
+
+/* Scroll Reveal */
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* 3D Card Tilt + Spotlight */
+document.querySelectorAll('[data-tilt]').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const rotateX = (0.5 - y) * 12;
+    const rotateY = (x - 0.5) * 12;
+    card.style.transform = 'perspective(600px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
+    card.style.setProperty('--spotlight-x', (x * 100) + '%');
+    card.style.setProperty('--spotlight-y', (y * 100) + '%');
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(600px) rotateX(0) rotateY(0) scale(1)';
+    card.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+  });
+  card.addEventListener('mouseenter', () => { card.style.transition = 'transform 0.1s ease, border-color 0.3s, box-shadow 0.3s'; });
+});
+
+/* Magnetic Buttons */
+document.querySelectorAll('[data-magnetic]').forEach(btn => {
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    btn.style.transform = 'translate(' + (x * 0.2) + 'px, ' + (y * 0.2) + 'px)';
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = 'translate(0, 0)';
+    btn.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+  });
+  btn.addEventListener('mouseenter', () => { btn.style.transition = 'transform 0.1s ease'; });
+});
+
+/* Animated Counters */
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.counter);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const isDecimal = target % 1 !== 0;
+  const duration = 2100;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = target * eased;
+    el.textContent = prefix + (isDecimal ? val.toFixed(1) : Math.floor(val).toLocaleString()) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const counterObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { animateCounter(e.target); counterObs.unobserve(e.target); } });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-counter]').forEach(el => counterObs.observe(el));
+
+/* Ring animations */
+const ringObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const ring = e.target.querySelector('.ring-fill');
+      if (ring) { ring.classList.add('animate'); }
+      ringObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.metric-card').forEach(el => ringObs.observe(el));
+
+/* Chart line animation on scroll */
+const chartObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('animate'); chartObs.unobserve(e.target); } });
+}, { threshold: 0.3 });
+document.querySelectorAll('.chart-line-animated').forEach(el => chartObs.observe(el));
+
+/* Character Stagger */
+document.querySelectorAll('[data-stagger]').forEach(el => {
+  const text = el.textContent;
+  el.innerHTML = '';
+  text.split('').forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.textContent = ch === ' ' ? '\u00A0' : ch;
+    span.style.transitionDelay = (i * 0.03) + 's';
+    el.appendChild(span);
+  });
+});
+
+/* Particle Canvas */
+(function() {
+  const canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let mouse = { x: null, y: null };
+  const COUNT = 90;
+  const DIST = 130;
+
+  function resize() { const s = canvas.parentElement; canvas.width = s.offsetWidth; canvas.height = s.offsetHeight; }
+  function init() {
+    particles = [];
+    for (let i = 0; i < COUNT; i++) {
+      particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, r: Math.random() * 2 + 0.5 });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+      // Glow
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+      g.addColorStop(0, 'rgba(139,92,246,0.3)');
+      g.addColorStop(1, 'rgba(139,92,246,0)');
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+
+      // Dot
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(139,92,246,0.7)'; ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const p2 = particles[j];
+        const d = Math.hypot(p.x - p2.x, p.y - p2.y);
+        if (d < DIST) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.strokeStyle = 'rgba(139,92,246,' + ((1 - d / DIST) * 0.15) + ')'; ctx.lineWidth = 0.5; ctx.stroke(); }
+      }
+
+      if (mouse.x !== null) {
+        const d = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+        if (d < DIST * 1.8) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y); ctx.strokeStyle = 'rgba(6,182,212,' + ((1 - d / (DIST * 1.8)) * 0.35) + ')'; ctx.lineWidth = 0.8; ctx.stroke(); }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  canvas.addEventListener('mousemove', (e) => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+  canvas.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+  window.addEventListener('resize', () => { resize(); init(); });
+  resize(); init(); draw();
+})();
+</script>
+</body>
+</html>

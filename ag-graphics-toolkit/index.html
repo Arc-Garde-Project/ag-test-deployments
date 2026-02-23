@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AG Graphics Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #F7F3EE;
+  --void-dark: #171513;
+  --accent: #7A5C38;
+  --accent-glow: rgba(92, 66, 41, 0.25);
+  --warm-gold: #C4956A;
+  --bronze-light: #D4A574;
+  --surface-0: #0a0a0a;
+  --surface-1: #141414;
+  --surface-2: #1a1a1a;
+  --surface-3: #222222;
+  --ui-border: rgba(255,255,255,0.06);
+  --ui-border-hover: rgba(255,255,255,0.14);
+  --ui-text-primary: rgba(255,255,255,0.92);
+  --ui-text-secondary: rgba(255,255,255,0.6);
+  --ui-text-tertiary: rgba(255,255,255,0.35);
+  --ui-text-muted: rgba(255,255,255,0.2);
+  --status-green: #34d399;
+  --status-blue: #60a5fa;
+  --status-amber: #fbbf24;
+  --status-purple: #a78bfa;
+  --syn-keyword: #c792ea;
+  --syn-string: #a5d6a7;
+  --syn-number: #f78c6c;
+  --syn-comment: #637777;
+  --syn-function: #82aaff;
+  --syn-variable: #d6deeb;
+  --syn-operator: #89ddff;
+  --ease-arc: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-enterprise: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--surface-0);
+  color: var(--ui-text-primary);
+  overflow-x: hidden;
+  cursor: none;
+}
+a { text-decoration: none; color: inherit; cursor: none; }
+button { cursor: none; border: none; background: none; font: inherit; }
+canvas { display: block; }
+
+/* Cursor */
+.cursor-glow {
+  position: fixed; width: 350px; height: 350px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none; z-index: 9999; transform: translate(-50%, -50%);
+  opacity: 0.35; mix-blend-mode: screen;
+}
+.cursor-dot {
+  position: fixed; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--warm-gold); pointer-events: none; z-index: 10001;
+  transform: translate(-50%, -50%);
+}
+.cursor-ring {
+  position: fixed; width: 42px; height: 42px; border-radius: 50%;
+  border: 1.5px solid var(--warm-gold); pointer-events: none; z-index: 10000;
+  transform: translate(-50%, -50%); opacity: 0.5;
+  transition: width 0.3s var(--ease-arc), height 0.3s var(--ease-arc), opacity 0.3s;
+}
+.cursor-ring.hovering { width: 63px; height: 63px; opacity: 0.8; }
+@media (hover: none) {
+  .cursor-glow, .cursor-dot, .cursor-ring { display: none; }
+  body { cursor: auto; }
+}
+
+/* Grain overlay */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9990; opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* Layout */
+.graphic-section {
+  min-height: 100vh; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  border-bottom: 1px solid var(--ui-border);
+}
+.graphic-label {
+  position: absolute; top: 28px; left: 28px; z-index: 10;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.graphic-number {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--warm-gold); letter-spacing: 0.15em;
+}
+.graphic-name {
+  font-family: 'Cinzel', serif; font-size: 0.8rem;
+  color: var(--ui-text-secondary); letter-spacing: 0.1em;
+}
+.graphic-code-hint {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); max-width: 200px; line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* Reveal */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.9s var(--ease-entrance), transform 0.9s var(--ease-entrance);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ═══════════════════════════════════
+   1. GENERATIVE FLOW FIELD
+   ═══════════════════════════════════ */
+#flowFieldCanvas {
+  width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+}
+.flow-field-overlay {
+  position: relative; z-index: 2; text-align: center; padding: 42px;
+}
+.flow-field-overlay h1 {
+  font-family: 'Cinzel', serif; font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 400; letter-spacing: 0.1em; line-height: 1;
+  mix-blend-mode: difference;
+}
+
+/* ═══════════════════════════════════
+   2. MESH GRADIENT COMPOSITION
+   ═══════════════════════════════════ */
+.mesh-stage {
+  width: 100%; height: 100%; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: 42px;
+}
+.mesh-canvas {
+  width: min(90%, 700px); aspect-ratio: 4/3; border-radius: 18px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.mesh-blob {
+  position: absolute; border-radius: 50%; filter: blur(60px);
+  animation: mesh-drift 14s ease-in-out infinite;
+}
+.mesh-blob-1 {
+  width: 60%; height: 70%; top: -10%; left: -5%;
+  background: #7A5C38; animation-duration: 14s;
+}
+.mesh-blob-2 {
+  width: 50%; height: 60%; bottom: -15%; right: -10%;
+  background: #3b2a1a; animation-duration: 9s; animation-delay: -4s;
+}
+.mesh-blob-3 {
+  width: 45%; height: 55%; top: 20%; right: 10%;
+  background: #5C4229; animation-duration: 21s; animation-delay: -7s;
+}
+.mesh-blob-4 {
+  width: 35%; height: 40%; bottom: 10%; left: 20%;
+  background: #C4956A; animation-duration: 7s; animation-delay: -2s;
+  opacity: 0.7;
+}
+@keyframes mesh-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(15px, 15px) scale(1.02); }
+}
+.mesh-text {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; z-index: 2;
+}
+.mesh-text h2 {
+  font-family: 'Cinzel', serif; font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 400; letter-spacing: 0.15em; color: white;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+/* ═══════════════════════════════════
+   3. SVG DISTORTION / NOISE TEXTURE
+   ═══════════════════════════════════ */
+.distortion-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 42px; height: 100%;
+}
+.distortion-frame {
+  width: min(90%, 700px); aspect-ratio: 16/10; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-1); border-radius: 18px; overflow: hidden;
+  border: 1px solid var(--ui-border);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
+.distortion-text {
+  font-family: 'Cinzel', serif; font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 600; letter-spacing: 0.08em; color: var(--warm-gold);
+  position: relative; z-index: 2;
+  transition: filter 0.6s var(--ease-enterprise);
+}
+.distortion-frame:hover .distortion-text {
+  filter: url(#distort);
+}
+.distortion-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(122, 92, 56, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(196, 149, 106, 0.1) 0%, transparent 50%);
+}
+.distortion-hint {
+  position: absolute; bottom: 21px; left: 50%; transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--ui-text-muted); z-index: 3;
+}
+
+/* ═══════════════════════════════════
+   4. CLIP-PATH SHAPE REVEALS
+   ═══════════════════════════════════ */
+.clip-stage {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 21px;
+  padding: 100px 42px; max-width: 1200px; margin: 0 auto; width: 100%;
+}
+.clip-card {
+  aspect-ratio: 3/4; position: relative; overflow: hidden;
+  border-radius: 14px; background: var(--surface-1);
+  border: 1px solid var(--ui-border);
+}
+.clip-card-bg {
+  position: absolute; inset: 0; opacity: 0;
+  transition: clip-path 1.2s var(--ease-enterprise), opacity 0.6s;
+}
+.clip-card:nth-child(1) .clip-card-bg {
+  background: linear-gradient(135deg, #7A5C38, #C4956A, #3b2a1a);
+  clip-path: circle(0% at 50% 50%);
+}
+.clip-card:nth-child(2) .clip-card-bg {
+  background: linear-gradient(135deg, #2a1a0a, #5C4229, #D4A574);
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+}
+.clip-card:nth-child(3) .clip-card-bg {
+  background: linear-gradient(135deg, #C4956A, #7A5C38, #171513);
+  clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+}
+.clip-card.revealed:nth-child(1) .clip-card-bg {
+  clip-path: circle(75% at 50% 50%); opacity: 1;
+}
+.clip-card.revealed:nth-child(2) .clip-card-bg {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1;
+}
+.clip-card.revealed:nth-child(3) .clip-card-bg {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1;
+}
+.clip-card-content {
+  position: absolute; bottom: 21px; left: 21px; right: 21px; z-index: 2;
+}
+.clip-card-type {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: rgba(255,255,255,0.5); text-transform: uppercase;
+  letter-spacing: 0.12em; margin-bottom: 6px;
+}
+.clip-card-title {
+  font-family: 'Cinzel', serif; font-size: 1.2rem;
+  color: white; letter-spacing: 0.06em;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.6s 0.4s, transform 0.6s 0.4s var(--ease-entrance);
+}
+.clip-card.revealed .clip-card-title {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ═══════════════════════════════════
+   5. TEXT MASKING WITH GRADIENT
+   ═══════════════════════════════════ */
+.mask-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 42px; height: 100%;
+}
+.masked-text {
+  font-family: 'Cinzel', serif; font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 700; letter-spacing: 0.06em; line-height: 0.9;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    var(--warm-gold) 0%,
+    #fff 20%,
+    var(--accent) 40%,
+    var(--bronze-light) 60%,
+    #fff 80%,
+    var(--warm-gold) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 7s ease infinite;
+}
+@keyframes gradient-shift {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* ═══════════════════════════════════
+   6. MIX-BLEND-MODE COMPOSITING
+   ═══════════════════════════════════ */
+.blend-stage {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; position: relative;
+}
+.blend-bg-left {
+  position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+  background: var(--void);
+}
+.blend-bg-right {
+  position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+  background: var(--void-dark);
+}
+.blend-text {
+  font-family: 'Cinzel', serif; font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 700; letter-spacing: 0.08em;
+  color: var(--warm-gold); position: relative; z-index: 2;
+  mix-blend-mode: difference;
+}
+.blend-cursor-circle {
+  position: absolute; width: 200px; height: 200px; border-radius: 50%;
+  background: var(--void); mix-blend-mode: exclusion;
+  pointer-events: none; z-index: 3;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+/* ═══════════════════════════════════
+   7. FLOATING UI VIGNETTES
+   ═══════════════════════════════════ */
+.vignette-stage {
+  perspective: 1200px; height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  padding: 42px; position: relative;
+}
+.vignette-panel {
+  position: absolute; background: var(--surface-1);
+  border: 1px solid var(--ui-border); border-radius: 12px;
+  overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  transition: transform 0.9s var(--ease-enterprise);
+  transform-style: preserve-3d;
+}
+.vp-chrome {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 12px; background: var(--surface-2);
+  border-bottom: 1px solid var(--ui-border);
+}
+.vp-dot { width: 9px; height: 9px; border-radius: 50%; }
+.vp-dot-r { background: #ff5f57; } .vp-dot-y { background: #ffbd2e; } .vp-dot-g { background: #28c840; }
+.vp-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--ui-text-muted); margin-left: 6px;
+}
+.vp-body { padding: 14px; }
+
+/* Panel positions */
+.vp-1 {
+  width: 420px; z-index: 4;
+  transform: rotateY(-2deg) rotateX(1deg);
+}
+.vp-2 {
+  width: 260px; z-index: 2;
+  left: 8%; top: 18%;
+  transform: rotateY(6deg) rotateX(-3deg) translateZ(-30px);
+  opacity: 0.85;
+}
+.vp-3 {
+  width: 280px; z-index: 3;
+  right: 8%; top: 22%;
+  transform: rotateY(-5deg) rotateX(2deg) translateZ(-15px);
+  opacity: 0.9;
+}
+.vp-4 {
+  width: 200px; z-index: 1;
+  left: 14%; bottom: 12%;
+  transform: rotateY(4deg) translateZ(-50px);
+  opacity: 0.7;
+}
+
+/* Dashboard mini */
+.vp-metric-big {
+  font-family: 'JetBrains Mono', monospace; font-size: 1.8rem;
+  font-weight: 500; color: var(--ui-text-primary); line-height: 1;
+}
+.vp-metric-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); margin-top: 3px;
+}
+.vp-metric-change {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--status-green); margin-top: 4px;
+}
+.vp-chart { width: 100%; height: 60px; margin-top: 10px; }
+.vp-chart svg { width: 100%; height: 100%; }
+.vp-chart-line {
+  fill: none; stroke: var(--warm-gold); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 500; stroke-dashoffset: 500;
+  transition: stroke-dashoffset 2.1s var(--ease-enterprise);
+}
+.vp-chart-line.drawn { stroke-dashoffset: 0; }
+.vp-chart-area { fill: url(#vpChartGrad); opacity: 0.12; }
+
+/* Sidebar mini */
+.vp-nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  border-radius: 6px; margin-bottom: 2px;
+}
+.vp-nav-item.active { background: rgba(122,92,56,0.12); }
+.vp-nav-dot { width: 5px; height: 5px; border-radius: 50%; }
+.vp-nav-text {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--ui-text-tertiary);
+}
+.vp-nav-item.active .vp-nav-text { color: var(--warm-gold); }
+
+/* Activity mini */
+.vp-activity {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--ui-border);
+}
+.vp-activity:last-child { border-bottom: none; }
+.vp-activity-avatar {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), var(--warm-gold));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.45rem; color: white;
+}
+.vp-activity-text {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-tertiary); line-height: 1.5;
+}
+.vp-activity-text strong { color: var(--ui-text-secondary); }
+
+/* Status mini */
+.vp-status-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid var(--ui-border);
+}
+.vp-status-row:last-child { border-bottom: none; }
+.vp-status-left { display: flex; align-items: center; gap: 6px; }
+.vp-status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.vp-status-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-tertiary);
+}
+.vp-status-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--ui-text-muted);
+}
+
+/* ═══════════════════════════════════
+   8. ANIMATED CODE BLOCK
+   ═══════════════════════════════════ */
+.code-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 42px; height: 100%;
+}
+.code-editor {
+  width: min(90%, 650px); background: var(--surface-0);
+  border-radius: 14px; border: 1px solid var(--ui-border);
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.ce-tabs {
+  display: flex; background: var(--surface-2);
+  border-bottom: 1px solid var(--ui-border);
+}
+.ce-tab {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  padding: 9px 14px; color: var(--ui-text-muted);
+  border-right: 1px solid var(--ui-border);
+  display: flex; align-items: center; gap: 5px;
+}
+.ce-tab.active {
+  color: var(--ui-text-secondary); background: var(--surface-0);
+  border-bottom: 1px solid var(--surface-0); margin-bottom: -1px;
+}
+.ce-dot { width: 7px; height: 7px; border-radius: 2px; }
+.ce-body {
+  padding: 16px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; line-height: 1.7; min-height: 340px;
+}
+.ce-line { display: flex; gap: 14px; }
+.ln { color: var(--ui-text-muted); user-select: none; min-width: 22px; text-align: right; font-size: 0.65rem; }
+.lc { white-space: pre; }
+.sk { color: var(--syn-keyword); } .ss { color: var(--syn-string); }
+.sn { color: var(--syn-number); } .sc { color: var(--syn-comment); font-style: italic; }
+.sf { color: var(--syn-function); } .sv { color: var(--syn-variable); }
+.so { color: var(--syn-operator); }
+.typing-cursor {
+  display: inline-block; width: 2px; height: 1em; background: var(--warm-gold);
+  margin-left: 1px; animation: blink 0.9s steps(2, start) infinite; vertical-align: text-bottom;
+}
+@keyframes blink { to { opacity: 0; } }
+
+/* ═══════════════════════════════════
+   9. PRODUCT FLOW + SVG CONNECTIONS
+   ═══════════════════════════════════ */
+.flow-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 100px 42px; height: 100%;
+}
+.flow-wrap {
+  max-width: 1100px; width: 100%; position: relative;
+}
+.flow-cards {
+  display: flex; justify-content: space-between; gap: 14px; position: relative; z-index: 2;
+}
+.flow-card {
+  flex: 1; max-width: 240px; background: var(--surface-1);
+  border: 1px solid var(--ui-border); border-radius: 12px;
+  padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: transform 0.6s var(--ease-enterprise), border-color 0.3s;
+}
+.flow-card:hover { transform: translateY(-4px); border-color: var(--ui-border-hover); }
+.fc-step {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.5rem;
+  color: var(--warm-gold); letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.fc-title {
+  font-family: 'Cinzel', serif; font-size: 0.85rem;
+  letter-spacing: 0.04em; margin-bottom: 6px;
+}
+.fc-desc {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); line-height: 1.6;
+}
+.fc-preview {
+  background: var(--surface-0); border: 1px solid var(--ui-border);
+  border-radius: 6px; padding: 8px; margin-top: 10px;
+}
+.fc-bar { height: 3px; border-radius: 2px; background: var(--surface-3); margin-bottom: 4px; }
+.fc-bar-gold { background: rgba(196,149,106,0.2); }
+.fc-row { display: flex; gap: 4px; margin-top: 4px; }
+.fc-block { flex: 1; height: 16px; background: var(--surface-3); border-radius: 3px; }
+
+.flow-svg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+}
+.flow-path { fill: none; stroke: var(--warm-gold); stroke-width: 1.5; opacity: 0.25; }
+.flow-dot-anim { fill: var(--warm-gold); opacity: 0.9; }
+
+/* ═══════════════════════════════════
+   10. PARTICLE CANVAS
+   ═══════════════════════════════════ */
+.particle-stage {
+  position: relative; display: flex; align-items: center;
+  justify-content: center; height: 100%;
+}
+#particleCanvas {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.particle-text {
+  position: relative; z-index: 2; text-align: center;
+}
+.particle-text h2 {
+  font-family: 'Cinzel', serif; font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 400; letter-spacing: 0.1em;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(196,149,106,0.7));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.particle-text p {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--ui-text-muted); margin-top: 14px; letter-spacing: 0.06em;
+}
+
+/* ═══════════════════════════════════
+   11. DATA VIZ / CHART GRAPHIC
+   ═══════════════════════════════════ */
+.chart-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 42px; height: 100%;
+}
+.chart-frame {
+  width: min(90%, 750px); background: var(--surface-1);
+  border-radius: 14px; border: 1px solid var(--ui-border);
+  padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
+.chart-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 28px;
+}
+.chart-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  color: var(--ui-text-primary);
+}
+.chart-subtitle {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); margin-top: 3px;
+}
+.chart-legend {
+  display: flex; gap: 14px;
+}
+.chart-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted);
+}
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+.chart-area {
+  width: 100%; height: 200px; position: relative;
+}
+.chart-area svg { width: 100%; height: 100%; }
+
+.chart-grid-line {
+  stroke: var(--ui-border); stroke-width: 1; stroke-dasharray: 4 4;
+}
+.chart-line-1 {
+  fill: none; stroke: var(--warm-gold); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 600; stroke-dashoffset: 600;
+  transition: stroke-dashoffset 2.1s var(--ease-enterprise);
+}
+.chart-line-1.drawn { stroke-dashoffset: 0; }
+.chart-line-2 {
+  fill: none; stroke: var(--status-blue); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; opacity: 0.5;
+  stroke-dasharray: 600; stroke-dashoffset: 600;
+  transition: stroke-dashoffset 2.1s 0.3s var(--ease-enterprise);
+}
+.chart-line-2.drawn { stroke-dashoffset: 0; }
+.chart-area-fill {
+  opacity: 0; transition: opacity 1.4s 0.5s;
+}
+.chart-area-fill.drawn { opacity: 0.1; }
+
+.chart-stats {
+  display: flex; gap: 21px; margin-top: 21px; padding-top: 21px;
+  border-top: 1px solid var(--ui-border);
+}
+.chart-stat-value {
+  font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;
+  font-weight: 500; color: var(--ui-text-primary);
+}
+.chart-stat-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); margin-top: 2px;
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════ */
+@media (max-width: 768px) {
+  .clip-stage { grid-template-columns: 1fr; max-width: 400px; }
+  .flow-cards { flex-direction: column; align-items: center; }
+  .flow-svg { display: none; }
+  .flow-card { max-width: 100%; }
+  .vp-2, .vp-4 { display: none; }
+  .vp-1 { width: 85%; position: relative; }
+  .vp-3 { width: 200px; right: 2%; top: 10%; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor-glow"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+<div class="grain"></div>
+
+<!-- SVG Filters -->
+<svg style="position: absolute; width: 0; height: 0;">
+  <defs>
+    <filter id="distort">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="noise" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="35" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="vpChartGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="var(--warm-gold)" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="var(--warm-gold)" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="chartGrad1" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="var(--warm-gold)" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="var(--warm-gold)" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ═══════════════════════════════════════
+     1. GENERATIVE FLOW FIELD
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g1">
+  <div class="graphic-label">
+    <span class="graphic-number">01 / 11</span>
+    <span class="graphic-name">Flow Field</span>
+    <span class="graphic-code-hint">Canvas + Math.sin/cos noise algorithm. Unique every load.</span>
+  </div>
+  <canvas id="flowFieldCanvas"></canvas>
+  <div class="flow-field-overlay">
+    <h1>AG</h1>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     2. MESH GRADIENT
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g2">
+  <div class="graphic-label">
+    <span class="graphic-number">02 / 11</span>
+    <span class="graphic-name">Mesh Gradient</span>
+    <span class="graphic-code-hint">Blurred divs with animation. CSS-only Stripe/Linear aesthetic.</span>
+  </div>
+  <div class="mesh-stage">
+    <div class="mesh-canvas reveal">
+      <div class="mesh-blob mesh-blob-1"></div>
+      <div class="mesh-blob mesh-blob-2"></div>
+      <div class="mesh-blob mesh-blob-3"></div>
+      <div class="mesh-blob mesh-blob-4"></div>
+      <div class="mesh-text"><h2>STELLAR</h2></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     3. SVG DISTORTION
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g3">
+  <div class="graphic-label">
+    <span class="graphic-number">03 / 11</span>
+    <span class="graphic-name">SVG Distortion</span>
+    <span class="graphic-code-hint">feTurbulence + feDisplacementMap. Hover to distort.</span>
+  </div>
+  <div class="distortion-stage">
+    <div class="distortion-frame reveal">
+      <div class="distortion-bg"></div>
+      <div class="distortion-text">WARP</div>
+      <div class="distortion-hint">Hover to distort</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     4. CLIP-PATH REVEALS
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g4">
+  <div class="graphic-label">
+    <span class="graphic-number">04 / 11</span>
+    <span class="graphic-name">Clip-Path Reveals</span>
+    <span class="graphic-code-hint">circle(), polygon() transitions. Three reveal shapes.</span>
+  </div>
+  <div class="clip-stage">
+    <div class="clip-card">
+      <div class="clip-card-bg"></div>
+      <div class="clip-card-content">
+        <div class="clip-card-type">Circle expand</div>
+        <div class="clip-card-title">Radial Reveal</div>
+      </div>
+    </div>
+    <div class="clip-card">
+      <div class="clip-card-bg"></div>
+      <div class="clip-card-content">
+        <div class="clip-card-type">Diagonal wipe</div>
+        <div class="clip-card-title">Curtain Sweep</div>
+      </div>
+    </div>
+    <div class="clip-card">
+      <div class="clip-card-bg"></div>
+      <div class="clip-card-content">
+        <div class="clip-card-type">Diamond burst</div>
+        <div class="clip-card-title">Center Bloom</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. GRADIENT TEXT MASKING
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g5">
+  <div class="graphic-label">
+    <span class="graphic-number">05 / 11</span>
+    <span class="graphic-name">Gradient Text</span>
+    <span class="graphic-code-hint">background-clip: text + animated gradient-position shift.</span>
+  </div>
+  <div class="mask-stage">
+    <div class="masked-text reveal">ARC<br>GARDE</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     6. MIX-BLEND-MODE
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g6">
+  <div class="graphic-label" style="z-index: 10;">
+    <span class="graphic-number">06 / 11</span>
+    <span class="graphic-name">Blend Mode</span>
+    <span class="graphic-code-hint">mix-blend-mode: difference + exclusion cursor circle.</span>
+  </div>
+  <div class="blend-stage">
+    <div class="blend-bg-left"></div>
+    <div class="blend-bg-right"></div>
+    <div class="blend-text">CONTRAST</div>
+    <div class="blend-cursor-circle" id="blendCircle"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     7. FLOATING UI VIGNETTES
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g7">
+  <div class="graphic-label">
+    <span class="graphic-number">07 / 11</span>
+    <span class="graphic-name">UI Vignettes</span>
+    <span class="graphic-code-hint">perspective: 1200px + transform-style: preserve-3d. Product as graphic.</span>
+  </div>
+  <div class="vignette-stage" id="vignetteStage">
+    <!-- Main dashboard -->
+    <div class="vignette-panel vp-1">
+      <div class="vp-chrome">
+        <div class="vp-dot vp-dot-r"></div><div class="vp-dot vp-dot-y"></div><div class="vp-dot vp-dot-g"></div>
+        <span class="vp-title">dashboard</span>
+      </div>
+      <div class="vp-body">
+        <div class="vp-metric-big">$47,850</div>
+        <div class="vp-metric-label">Monthly Recurring Revenue</div>
+        <div class="vp-metric-change">+12.4%</div>
+        <div class="vp-chart">
+          <svg viewBox="0 0 400 60" preserveAspectRatio="none">
+            <path class="vp-chart-area" d="M0,50 L40,46 80,40 120,44 160,32 200,36 240,24 280,28 320,18 360,22 400,10 400,60 0,60 Z"/>
+            <path class="vp-chart-line" d="M0,50 L40,46 80,40 120,44 160,32 200,36 240,24 280,28 320,18 360,22 400,10"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <!-- Sidebar -->
+    <div class="vignette-panel vp-2">
+      <div class="vp-chrome">
+        <div class="vp-dot vp-dot-r"></div><div class="vp-dot vp-dot-y"></div><div class="vp-dot vp-dot-g"></div>
+        <span class="vp-title">nav</span>
+      </div>
+      <div class="vp-body" style="padding: 6px;">
+        <div class="vp-nav-item active"><div class="vp-nav-dot" style="background: var(--warm-gold);"></div><span class="vp-nav-text">Dashboard</span></div>
+        <div class="vp-nav-item"><div class="vp-nav-dot" style="background: var(--status-blue);"></div><span class="vp-nav-text">Analytics</span></div>
+        <div class="vp-nav-item"><div class="vp-nav-dot" style="background: var(--status-green);"></div><span class="vp-nav-text">Projects</span></div>
+        <div class="vp-nav-item"><div class="vp-nav-dot" style="background: var(--status-purple);"></div><span class="vp-nav-text">Deploy</span></div>
+      </div>
+    </div>
+    <!-- Activity -->
+    <div class="vignette-panel vp-3">
+      <div class="vp-chrome">
+        <div class="vp-dot vp-dot-r"></div><div class="vp-dot vp-dot-y"></div><div class="vp-dot vp-dot-g"></div>
+        <span class="vp-title">activity</span>
+      </div>
+      <div class="vp-body" style="padding: 10px;">
+        <div class="vp-activity">
+          <div class="vp-activity-avatar">Q</div>
+          <div class="vp-activity-text"><strong>Quinten</strong> deployed to production</div>
+        </div>
+        <div class="vp-activity">
+          <div class="vp-activity-avatar">C</div>
+          <div class="vp-activity-text"><strong>Claude</strong> passed IDWIP scan</div>
+        </div>
+        <div class="vp-activity">
+          <div class="vp-activity-avatar">A</div>
+          <div class="vp-activity-text"><strong>System</strong> cleared gate G3</div>
+        </div>
+      </div>
+    </div>
+    <!-- Status -->
+    <div class="vignette-panel vp-4">
+      <div class="vp-chrome">
+        <div class="vp-dot vp-dot-r"></div><div class="vp-dot vp-dot-y"></div><div class="vp-dot vp-dot-g"></div>
+        <span class="vp-title">status</span>
+      </div>
+      <div class="vp-body" style="padding: 8px 10px;">
+        <div class="vp-status-row">
+          <div class="vp-status-left"><div class="vp-status-dot" style="background: var(--status-green);"></div><span class="vp-status-name">API</span></div>
+          <span class="vp-status-val">42ms</span>
+        </div>
+        <div class="vp-status-row">
+          <div class="vp-status-left"><div class="vp-status-dot" style="background: var(--status-green);"></div><span class="vp-status-name">CDN</span></div>
+          <span class="vp-status-val">7ms</span>
+        </div>
+        <div class="vp-status-row">
+          <div class="vp-status-left"><div class="vp-status-dot" style="background: var(--status-amber);"></div><span class="vp-status-name">Queue</span></div>
+          <span class="vp-status-val">213ms</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. ANIMATED CODE BLOCK
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g8">
+  <div class="graphic-label">
+    <span class="graphic-number">08 / 11</span>
+    <span class="graphic-name">Code Typing</span>
+    <span class="graphic-code-hint">Recursive setTimeout + syntax-highlighted spans. Product as code.</span>
+  </div>
+  <div class="code-stage">
+    <div class="code-editor reveal">
+      <div class="ce-tabs">
+        <div class="ce-tab active"><div class="ce-dot" style="background: var(--syn-function);"></div>config.ts</div>
+        <div class="ce-tab"><div class="ce-dot" style="background: var(--syn-keyword);"></div>deploy.ts</div>
+      </div>
+      <div class="ce-body" id="codeTarget"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     9. PRODUCT FLOW + SVG CONNECTIONS
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g9">
+  <div class="graphic-label">
+    <span class="graphic-number">09 / 11</span>
+    <span class="graphic-name">Flow Diagram</span>
+    <span class="graphic-code-hint">SVG cubic bezier paths + animateMotion flowing dots.</span>
+  </div>
+  <div class="flow-stage">
+    <div class="flow-wrap">
+      <svg class="flow-svg" id="flowSVG" viewBox="0 0 1100 280" preserveAspectRatio="none"></svg>
+      <div class="flow-cards">
+        <div class="flow-card">
+          <div class="fc-step">STEP 01</div>
+          <div class="fc-title">Intake</div>
+          <div class="fc-desc">49 questions. Client DNA extracted.</div>
+          <div class="fc-preview">
+            <div class="fc-bar" style="width: 100%;"></div>
+            <div class="fc-bar" style="width: 65%;"></div>
+            <div class="fc-bar fc-bar-gold" style="width: 40%;"></div>
+          </div>
+        </div>
+        <div class="flow-card">
+          <div class="fc-step">STEP 02</div>
+          <div class="fc-title">Build</div>
+          <div class="fc-desc">ICEL research. DVBL construction.</div>
+          <div class="fc-preview">
+            <div class="fc-row"><div class="fc-block"></div><div class="fc-block"></div><div class="fc-block"></div></div>
+            <div class="fc-row"><div class="fc-block fc-bar-gold" style="flex: 2;"></div><div class="fc-block"></div></div>
+          </div>
+        </div>
+        <div class="flow-card">
+          <div class="fc-step">STEP 03</div>
+          <div class="fc-title">Validate</div>
+          <div class="fc-desc">IDWIP scan. Ripple Effect check.</div>
+          <div class="fc-preview">
+            <div class="fc-bar fc-bar-gold" style="width: 100%; background: rgba(52,211,153,0.2);"></div>
+            <div class="fc-bar" style="width: 100%; background: rgba(52,211,153,0.2);"></div>
+            <div class="fc-bar" style="width: 100%; background: rgba(52,211,153,0.2);"></div>
+          </div>
+        </div>
+        <div class="flow-card">
+          <div class="fc-step">STEP 04</div>
+          <div class="fc-title">Deploy</div>
+          <div class="fc-desc">PR, merge, auto-deploy, CRM sync.</div>
+          <div class="fc-preview">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--status-green);"></div>
+              <div class="fc-bar" style="flex:1;margin:0;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--status-green);"></div>
+              <div class="fc-bar" style="flex:1;margin:0;width:60%;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--status-green);"></div>
+              <div class="fc-bar" style="flex:1;margin:0;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     10. PARTICLE CANVAS
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g10">
+  <div class="graphic-label">
+    <span class="graphic-number">10 / 11</span>
+    <span class="graphic-name">Particles</span>
+    <span class="graphic-code-hint">Canvas requestAnimationFrame + mouse-reactive force field.</span>
+  </div>
+  <div class="particle-stage">
+    <canvas id="particleCanvas"></canvas>
+    <div class="particle-text">
+      <h2>STELLAR</h2>
+      <p>Canvas particle system with mouse interaction</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     11. DATA VIZ CHART
+     ═══════════════════════════════════════ -->
+<section class="graphic-section" id="g11">
+  <div class="graphic-label">
+    <span class="graphic-number">11 / 11</span>
+    <span class="graphic-name">Data Viz</span>
+    <span class="graphic-code-hint">SVG stroke-dashoffset draw + area fill fade. Dashboard graphic.</span>
+  </div>
+  <div class="chart-stage">
+    <div class="chart-frame reveal" id="chartFrame">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Project Performance</div>
+          <div class="chart-subtitle">Quality scores over 12 months</div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background: var(--warm-gold);"></div>Quality</div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background: var(--status-blue);"></div>Speed</div>
+        </div>
+      </div>
+      <div class="chart-area">
+        <svg viewBox="0 0 700 200" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line class="chart-grid-line" x1="0" y1="50" x2="700" y2="50"/>
+          <line class="chart-grid-line" x1="0" y1="100" x2="700" y2="100"/>
+          <line class="chart-grid-line" x1="0" y1="150" x2="700" y2="150"/>
+          <!-- Area fill -->
+          <path class="chart-area-fill" fill="url(#chartGrad1)" d="M0,160 L58,148 116,135 175,140 233,120 291,125 350,105 408,110 466,88 525,92 583,72 641,65 700,48 700,200 0,200 Z"/>
+          <!-- Lines -->
+          <path class="chart-line-1" d="M0,160 L58,148 116,135 175,140 233,120 291,125 350,105 408,110 466,88 525,92 583,72 641,65 700,48"/>
+          <path class="chart-line-2" d="M0,170 L58,162 116,155 175,150 233,142 291,138 350,130 408,125 466,118 525,112 583,105 641,98 700,90"/>
+        </svg>
+      </div>
+      <div class="chart-stats">
+        <div>
+          <div class="chart-stat-value">98.7</div>
+          <div class="chart-stat-label">Current Score</div>
+        </div>
+        <div>
+          <div class="chart-stat-value">+23%</div>
+          <div class="chart-stat-label">Year Over Year</div>
+        </div>
+        <div>
+          <div class="chart-stat-value">0</div>
+          <div class="chart-stat-label">Failed Gates</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── CURSOR ──
+  const cg = document.querySelector('.cursor-glow');
+  const cd = document.querySelector('.cursor-dot');
+  const cr = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, dx = 0, dy = 0, rx = 0, ry = 0, gx = 0, gy = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function ac() {
+    dx += (mx - dx) * 0.7; dy += (my - dy) * 0.7;
+    rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14;
+    gx += (mx - gx) * 0.07; gy += (my - gy) * 0.07;
+    cd.style.left = dx + 'px'; cd.style.top = dy + 'px';
+    cr.style.left = rx + 'px'; cr.style.top = ry + 'px';
+    cg.style.left = gx + 'px'; cg.style.top = gy + 'px';
+    requestAnimationFrame(ac);
+  })();
+  document.querySelectorAll('.flow-card, .clip-card, .vignette-panel, .mesh-canvas, .distortion-frame, .code-editor, .chart-frame').forEach(el => {
+    el.addEventListener('mouseenter', () => cr.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => cr.classList.remove('hovering'));
+  });
+
+  // ── REVEAL ──
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // ── 1. FLOW FIELD ──
+  const ffc = document.getElementById('flowFieldCanvas');
+  const ffCtx = ffc.getContext('2d');
+  let ffW, ffH;
+
+  function resizeFF() {
+    const s = ffc.parentElement;
+    ffW = ffc.width = s.offsetWidth;
+    ffH = ffc.height = s.offsetHeight;
+  }
+  resizeFF();
+  window.addEventListener('resize', resizeFF);
+
+  const scale = 0.005;
+  const cols = 80;
+
+  function noise2D(x, y) {
+    const s = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+    return s - Math.floor(s);
+  }
+
+  function drawFlowField() {
+    ffCtx.clearRect(0, 0, ffW, ffH);
+    const cellW = ffW / cols;
+    const rows = Math.ceil(ffH / cellW);
+    const t = Date.now() * 0.0003;
+
+    for (let i = 0; i < 1800; i++) {
+      let px = Math.random() * ffW;
+      let py = Math.random() * ffH;
+
+      ffCtx.beginPath();
+      ffCtx.moveTo(px, py);
+
+      for (let s = 0; s < 14; s++) {
+        const angle = noise2D(px * scale + t, py * scale) * Math.PI * 4;
+        px += Math.cos(angle) * 2.5;
+        py += Math.sin(angle) * 2.5;
+        ffCtx.lineTo(px, py);
+      }
+
+      ffCtx.strokeStyle = `rgba(196, 149, 106, ${0.06 + Math.random() * 0.06})`;
+      ffCtx.lineWidth = 0.5 + Math.random() * 0.5;
+      ffCtx.stroke();
+    }
+  }
+
+  drawFlowField();
+  let ffFrame = 0;
+  function animFF() {
+    ffFrame++;
+    if (ffFrame % 3 === 0) drawFlowField();
+    requestAnimationFrame(animFF);
+  }
+  animFF();
+
+  // ── 4. CLIP-PATH REVEALS ──
+  const clipObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const cards = e.target.querySelectorAll('.clip-card');
+        cards.forEach((c, i) => setTimeout(() => c.classList.add('revealed'), i * 300));
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.clip-stage').forEach(el => clipObs.observe(el));
+
+  // ── 6. BLEND MODE CURSOR ──
+  const blendCircle = document.getElementById('blendCircle');
+  const blendStage = document.querySelector('.blend-stage');
+  blendStage.addEventListener('mousemove', e => {
+    const r = blendStage.getBoundingClientRect();
+    blendCircle.style.left = (e.clientX - r.left) + 'px';
+    blendCircle.style.top = (e.clientY - r.top) + 'px';
+  });
+
+  // ── 7. VIGNETTE PARALLAX ──
+  const vigStage = document.getElementById('vignetteStage');
+  const vpanels = vigStage.querySelectorAll('.vignette-panel');
+  vigStage.addEventListener('mousemove', e => {
+    const r = vigStage.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width - 0.5;
+    const ny = (e.clientY - r.top) / r.height - 0.5;
+    vpanels.forEach((p, i) => {
+      const f = (i + 1) * 4;
+      p.style.transform = p.style.transform.replace(/ translate\([^)]+\)$/, '') + ` translate(${nx * f}px, ${ny * f}px)`;
+    });
+  });
+
+  // Chart line draw on vignette visible
+  const vigObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.vp-chart-line').forEach(l => setTimeout(() => l.classList.add('drawn'), 300));
+      }
+    });
+  }, { threshold: 0.3 });
+  vigObs.observe(vigStage);
+
+  // ── 8. CODE TYPING ──
+  const codeLines = [
+    { n: 1, t: [{ t: 'import', c: 'sk' }, { t: ' { ', c: 'so' }, { t: 'defineConfig', c: 'sf' }, { t: ' } ', c: 'so' }, { t: 'from', c: 'sk' }, { t: " '@arcgarde/core'", c: 'ss' }] },
+    { n: 2, t: [] },
+    { n: 3, t: [{ t: '// Enterprise deployment config', c: 'sc' }] },
+    { n: 4, t: [{ t: 'export', c: 'sk' }, { t: ' ', c: '' }, { t: 'default', c: 'sk' }, { t: ' ', c: '' }, { t: 'defineConfig', c: 'sf' }, { t: '({', c: 'so' }] },
+    { n: 5, t: [{ t: '  project', c: 'sv' }, { t: ': ', c: 'so' }, { t: "'stellar-graphics'", c: 'ss' }, { t: ',', c: 'so' }] },
+    { n: 6, t: [{ t: '  framework', c: 'sv' }, { t: ': ', c: 'so' }, { t: "'static'", c: 'ss' }, { t: ',', c: 'so' }] },
+    { n: 7, t: [{ t: '  quality', c: 'sv' }, { t: ': ', c: 'so' }, { t: "'enterprise'", c: 'ss' }, { t: ',', c: 'so' }] },
+    { n: 8, t: [] },
+    { n: 9, t: [{ t: '  deploy', c: 'sf' }, { t: ': {', c: 'so' }] },
+    { n: 10, t: [{ t: '    provider', c: 'sv' }, { t: ': ', c: 'so' }, { t: "'vercel'", c: 'ss' }, { t: ',', c: 'so' }] },
+    { n: 11, t: [{ t: '    region', c: 'sv' }, { t: ': ', c: 'so' }, { t: "'iad1'", c: 'ss' }, { t: ',', c: 'so' }] },
+    { n: 12, t: [{ t: '    autoScale', c: 'sv' }, { t: ': ', c: 'so' }, { t: 'true', c: 'sn' }] },
+    { n: 13, t: [{ t: '  }', c: 'so' }] },
+    { n: 14, t: [{ t: '})', c: 'so' }] },
+  ];
+
+  const codeTarget = document.getElementById('codeTarget');
+  let codeStarted = false;
+
+  function startCode() {
+    if (codeStarted) return;
+    codeStarted = true;
+    let li = 0;
+
+    function typeLine() {
+      if (li >= codeLines.length) {
+        codeTarget.querySelectorAll('.typing-cursor').forEach(c => c.remove());
+        return;
+      }
+      const line = codeLines[li];
+      const el = document.createElement('div'); el.className = 'ce-line';
+      const num = document.createElement('span'); num.className = 'ln'; num.textContent = line.n;
+      const cnt = document.createElement('span'); cnt.className = 'lc';
+      el.appendChild(num); el.appendChild(cnt);
+      codeTarget.querySelectorAll('.typing-cursor').forEach(c => c.remove());
+      codeTarget.appendChild(el);
+
+      if (!line.t.length) { cnt.innerHTML = '&nbsp;'; li++; setTimeout(typeLine, 50); return; }
+
+      let ti = 0, ci = 0;
+      const cur = document.createElement('span'); cur.className = 'typing-cursor';
+
+      function typeChar() {
+        if (ti >= line.t.length) { cur.remove(); li++; setTimeout(typeLine, 70); return; }
+        const tok = line.t[ti];
+        if (ci === 0) { const s = document.createElement('span'); if (tok.c) s.className = tok.c; s.dataset.ti = ti; cnt.appendChild(s); }
+        const s = cnt.querySelector(`[data-ti="${ti}"]`);
+        s.textContent = tok.t.slice(0, ci + 1);
+        cur.remove(); cnt.appendChild(cur);
+        ci++;
+        if (ci >= tok.t.length) { ci = 0; ti++; }
+        setTimeout(typeChar, 16 + Math.random() * 18);
+      }
+      typeChar();
+    }
+    typeLine();
+  }
+
+  const codeObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) startCode();
+  }, { threshold: 0.3 });
+  codeObs.observe(document.getElementById('g8'));
+
+  // ── 9. FLOW SVG CONNECTIONS ──
+  const flowCards = document.querySelectorAll('.flow-card');
+  const flowSVG = document.getElementById('flowSVG');
+
+  function drawFlow() {
+    const sr = flowSVG.getBoundingClientRect();
+    if (!sr.width) return;
+    let h = '';
+    for (let i = 0; i < flowCards.length - 1; i++) {
+      const r1 = flowCards[i].getBoundingClientRect();
+      const r2 = flowCards[i + 1].getBoundingClientRect();
+      const x1 = ((r1.right - sr.left) / sr.width) * 1100;
+      const y1 = ((r1.top + r1.height / 2 - sr.top) / sr.height) * 280;
+      const x2 = ((r2.left - sr.left) / sr.width) * 1100;
+      const y2 = ((r2.top + r2.height / 2 - sr.top) / sr.height) * 280;
+      const mx = (x1 + x2) / 2;
+      const id = 'fp' + i;
+      h += `<path id="${id}" class="flow-path" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;
+      h += `<circle class="flow-dot-anim" r="3.5"><animateMotion dur="2.1s" repeatCount="indefinite"><mpath href="#${id}"/></animateMotion></circle>`;
+    }
+    flowSVG.innerHTML = h;
+  }
+  setTimeout(drawFlow, 700);
+  window.addEventListener('resize', () => { clearTimeout(window._fr); window._fr = setTimeout(drawFlow, 300); });
+
+  // ── 10. PARTICLES ──
+  const pc = document.getElementById('particleCanvas');
+  const pCtx = pc.getContext('2d');
+  let pW, pH;
+  const particles = [];
+  const PCOUNT = 120;
+
+  function resizeP() {
+    const s = pc.parentElement;
+    pW = pc.width = s.offsetWidth;
+    pH = pc.height = s.offsetHeight;
+  }
+  resizeP();
+  window.addEventListener('resize', resizeP);
+
+  for (let i = 0; i < PCOUNT; i++) {
+    particles.push({
+      x: Math.random() * 2000, y: Math.random() * 1200,
+      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      r: 1.5 + Math.random() * 2, o: 0.15 + Math.random() * 0.25
+    });
+  }
+
+  let pmx = 0, pmy = 0;
+  pc.parentElement.addEventListener('mousemove', e => {
+    const r = pc.getBoundingClientRect();
+    pmx = e.clientX - r.left; pmy = e.clientY - r.top;
+  });
+
+  function animParticles() {
+    pCtx.clearRect(0, 0, pW, pH);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      // Mouse repulsion
+      const ddx = p.x - pmx, ddy = p.y - pmy;
+      const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+      if (dist < 150 && dist > 0) {
+        const force = (150 - dist) / 150 * 0.8;
+        p.vx += (ddx / dist) * force;
+        p.vy += (ddy / dist) * force;
+      }
+
+      p.vx *= 0.97; p.vy *= 0.97;
+      p.x += p.vx; p.y += p.vy;
+
+      if (p.x < 0) p.x = pW; if (p.x > pW) p.x = 0;
+      if (p.y < 0) p.y = pH; if (p.y > pH) p.y = 0;
+
+      pCtx.beginPath();
+      pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      pCtx.fillStyle = `rgba(196, 149, 106, ${p.o})`;
+      pCtx.fill();
+
+      // Connection lines
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const d = Math.hypot(p.x - q.x, p.y - q.y);
+        if (d < 120) {
+          pCtx.beginPath();
+          pCtx.moveTo(p.x, p.y);
+          pCtx.lineTo(q.x, q.y);
+          pCtx.strokeStyle = `rgba(196, 149, 106, ${(1 - d / 120) * 0.08})`;
+          pCtx.lineWidth = 0.5;
+          pCtx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animParticles);
+  }
+  animParticles();
+
+  // ── 11. CHART DRAW ──
+  const chartObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      document.querySelectorAll('.chart-line-1, .chart-line-2').forEach(l => l.classList.add('drawn'));
+      document.querySelectorAll('.chart-area-fill').forEach(a => a.classList.add('drawn'));
+    }
+  }, { threshold: 0.3 });
+  chartObs.observe(document.getElementById('chartFrame'));
+
+})();
+</script>
+</body>
+</html>

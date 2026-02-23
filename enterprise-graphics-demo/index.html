@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Product Graphics - AG Arc Garde</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   AG DESIGN SYSTEM TOKENS
+   ══════════════════════════════════════════ */
+:root {
+  --void: #F7F3EE;
+  --void-warm: #F0EBE4;
+  --void-dark: #171513;
+  --accent: #7A5C38;
+  --accent-bright: #5C4229;
+  --accent-glow: rgba(92, 66, 41, 0.25);
+  --warm-gold: #C4956A;
+  --bronze-light: #D4A574;
+  --text-primary: rgba(23, 21, 19, 0.92);
+  --text-secondary: rgba(23, 21, 19, 0.58);
+  --text-muted: rgba(23, 21, 19, 0.38);
+
+  /* Enterprise Dark UI */
+  --ui-bg-base: #0a0a0a;
+  --ui-bg-card: #141414;
+  --ui-bg-elevated: #1a1a1a;
+  --ui-bg-surface: #1e1e1e;
+  --ui-border: rgba(255, 255, 255, 0.08);
+  --ui-border-hover: rgba(255, 255, 255, 0.14);
+  --ui-text-primary: rgba(255, 255, 255, 0.95);
+  --ui-text-secondary: rgba(255, 255, 255, 0.64);
+  --ui-text-tertiary: rgba(255, 255, 255, 0.44);
+  --ui-text-muted: rgba(255, 255, 255, 0.28);
+
+  /* Status colors */
+  --status-green: #34d399;
+  --status-blue: #60a5fa;
+  --status-amber: #fbbf24;
+  --status-red: #f87171;
+  --status-purple: #a78bfa;
+
+  /* Syntax highlighting */
+  --syn-keyword: #c792ea;
+  --syn-string: #a5d6a7;
+  --syn-number: #f78c6c;
+  --syn-comment: #637777;
+  --syn-function: #82aaff;
+  --syn-variable: #d6deeb;
+  --syn-operator: #89ddff;
+  --syn-type: #ffcb8b;
+  --syn-tag: #f07178;
+  --syn-attr: #c792ea;
+  --syn-value: #a5d6a7;
+
+  /* Enterprise shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.1), 0 20px 25px rgba(0,0,0,0.1);
+  --shadow-xl: 0 1px 1px rgba(0,0,0,0.08), 0 2px 2px rgba(0,0,0,0.08), 0 4px 4px rgba(0,0,0,0.08), 0 8px 8px rgba(0,0,0,0.08), 0 16px 16px rgba(0,0,0,0.08), 0 32px 32px rgba(0,0,0,0.08);
+  --shadow-float: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05);
+
+  /* AG Timing */
+  --ease-arc: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-enterprise: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ══════════════════════════════════════════
+   RESET & BASE
+   ══════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+body {
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--void);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+a { text-decoration: none; color: inherit; cursor: none; }
+button { cursor: none; }
+
+/* ══════════════════════════════════════════
+   CURSOR SYSTEM
+   ══════════════════════════════════════════ */
+.cursor-glow {
+  position: fixed;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+.cursor-dot {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 10001;
+  transform: translate(-50%, -50%);
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  transition: width 0.3s var(--ease-arc), height 0.3s var(--ease-arc), opacity 0.3s;
+}
+
+.cursor-ring.hovering {
+  width: 63px;
+  height: 63px;
+  opacity: 0.8;
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 21px 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.7s var(--ease-arc);
+}
+
+.nav.scrolled {
+  padding: 14px 42px;
+  background: rgba(247, 243, 238, 0.85);
+  backdrop-filter: blur(21px);
+  -webkit-backdrop-filter: blur(21px);
+  border-bottom: 1px solid rgba(122, 92, 56, 0.1);
+}
+
+.nav-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.28em;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ══════════════════════════════════════════
+   SECTION LAYOUT
+   ══════════════════════════════════════════ */
+.section {
+  padding: 120px 42px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.section-dark {
+  background: var(--void-dark);
+  max-width: 100%;
+  padding: 120px 42px;
+}
+
+.section-dark .section-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section-label::before {
+  content: '';
+  width: 42px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  margin-bottom: 21px;
+}
+
+.section-subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  color: var(--text-secondary);
+  max-width: 600px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.section-dark .section-label { color: var(--warm-gold); }
+.section-dark .section-label::before { background: var(--warm-gold); }
+.section-dark .section-title { color: var(--ui-text-primary); }
+.section-dark .section-subtitle { color: var(--ui-text-secondary); }
+
+/* Divider */
+.section-divider {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.2;
+}
+
+/* ══════════════════════════════════════════
+   REVEAL ANIMATION
+   ══════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s var(--ease-entrance), transform 0.9s var(--ease-entrance);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ══════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 42px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-overline {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeInUp 0.9s var(--ease-entrance) 0.3s forwards;
+}
+
+.hero-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  margin-bottom: 28px;
+  text-wrap: balance;
+}
+
+.hero-title span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fadeInUp 0.7s var(--ease-entrance) forwards;
+}
+
+.hero-description {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 42px;
+  opacity: 0;
+  animation: fadeInUp 0.9s var(--ease-entrance) 1.2s forwards;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 21px;
+  border: 1px solid rgba(122, 92, 56, 0.3);
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  opacity: 0;
+  animation: fadeInUp 0.9s var(--ease-entrance) 1.5s forwards;
+}
+
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-green);
+  animation: pulse-dot 2.1s ease infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════
+   1. FLOATING UI VIGNETTES
+   ══════════════════════════════════════════ */
+.vignettes-stage {
+  perspective: 1200px;
+  height: 600px;
+  position: relative;
+  margin-top: 63px;
+}
+
+.ui-panel {
+  position: absolute;
+  background: var(--ui-bg-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-float);
+  transition: transform 0.9s var(--ease-enterprise);
+  transform-style: preserve-3d;
+}
+
+.ui-panel:hover {
+  transform: translateZ(20px) !important;
+}
+
+/* Panel positions */
+.panel-main {
+  width: 480px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotateY(-3deg) rotateX(2deg);
+  z-index: 3;
+}
+
+.panel-left {
+  width: 280px;
+  left: 5%;
+  top: 20%;
+  transform: rotateY(8deg) rotateX(-2deg) translateZ(-40px);
+  z-index: 1;
+  opacity: 0.85;
+}
+
+.panel-right {
+  width: 300px;
+  right: 5%;
+  top: 30%;
+  transform: rotateY(-6deg) rotateX(3deg) translateZ(-20px);
+  z-index: 2;
+  opacity: 0.9;
+}
+
+.panel-float {
+  width: 220px;
+  left: 15%;
+  bottom: 5%;
+  transform: rotateY(5deg) translateZ(-60px);
+  z-index: 1;
+  opacity: 0.75;
+}
+
+/* Window chrome */
+.panel-chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--ui-bg-elevated);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.chrome-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.chrome-dot.red { background: #ff5f57; }
+.chrome-dot.yellow { background: #ffbd2e; }
+.chrome-dot.green { background: #28c840; }
+
+.chrome-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-muted);
+  margin-left: 8px;
+}
+
+/* Panel content */
+.panel-body {
+  padding: 16px;
+}
+
+/* Dashboard panel */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dash-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ui-text-primary);
+}
+
+.dash-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--status-green);
+}
+
+.dash-metric {
+  margin-bottom: 16px;
+}
+
+.dash-metric-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--ui-text-primary);
+  line-height: 1;
+}
+
+.dash-metric-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-tertiary);
+  margin-top: 4px;
+}
+
+.dash-metric-change {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--status-green);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+/* Mini chart */
+.mini-chart {
+  width: 100%;
+  height: 80px;
+  margin-top: 12px;
+}
+
+.mini-chart svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--warm-gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-area {
+  fill: url(#chartGradient);
+  opacity: 0.15;
+}
+
+.chart-line-animated {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  transition: stroke-dashoffset 2.1s var(--ease-enterprise);
+}
+
+.chart-line-animated.drawn {
+  stroke-dashoffset: 0;
+}
+
+/* Stats row */
+.dash-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.dash-stat {
+  flex: 1;
+  padding: 10px;
+  background: var(--ui-bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--ui-border);
+}
+
+.dash-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--ui-text-primary);
+  font-weight: 500;
+}
+
+.dash-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--ui-text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Sidebar panel */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  margin-bottom: 3px;
+  transition: background 0.3s;
+}
+
+.sidebar-item:hover {
+  background: var(--ui-bg-surface);
+}
+
+.sidebar-item.active {
+  background: rgba(122, 92, 56, 0.12);
+}
+
+.sidebar-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-icon-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.sidebar-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ui-text-secondary);
+}
+
+.sidebar-item.active .sidebar-text {
+  color: var(--warm-gold);
+}
+
+/* Notification panel */
+.notif-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ui-border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.notif-item:last-child { border-bottom: none; }
+
+.notif-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--warm-gold));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  color: white;
+  font-weight: 500;
+}
+
+.notif-content {
+  flex: 1;
+}
+
+.notif-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-secondary);
+  line-height: 1.5;
+}
+
+.notif-text strong {
+  color: var(--ui-text-primary);
+}
+
+.notif-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--ui-text-muted);
+  margin-top: 3px;
+}
+
+/* Status list panel */
+.status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.status-item:last-child { border-bottom: none; }
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ui-text-secondary);
+}
+
+.status-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-tertiary);
+}
+
+/* ══════════════════════════════════════════
+   2. ANIMATED CODE BLOCK
+   ══════════════════════════════════════════ */
+.code-showcase {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 42px;
+  margin-top: 63px;
+  align-items: start;
+}
+
+.code-description {
+  padding-top: 42px;
+}
+
+.code-description h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+  color: var(--ui-text-primary);
+}
+
+.code-description p {
+  font-size: 1.15rem;
+  color: var(--ui-text-secondary);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.code-feature-list {
+  margin-top: 28px;
+  list-style: none;
+}
+
+.code-feature-list li {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ui-text-tertiary);
+  padding: 7px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.code-feature-list li::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--warm-gold);
+  flex-shrink: 0;
+}
+
+.code-editor {
+  background: var(--ui-bg-base);
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.editor-tabs {
+  display: flex;
+  background: var(--ui-bg-elevated);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.editor-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 10px 16px;
+  color: var(--ui-text-muted);
+  border-right: 1px solid var(--ui-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-tab.active {
+  color: var(--ui-text-secondary);
+  background: var(--ui-bg-base);
+  border-bottom: 1px solid var(--ui-bg-base);
+  margin-bottom: -1px;
+}
+
+.tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.editor-body {
+  padding: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  min-height: 320px;
+  position: relative;
+}
+
+.editor-line {
+  display: flex;
+  gap: 16px;
+}
+
+.line-number {
+  color: var(--ui-text-muted);
+  user-select: none;
+  min-width: 24px;
+  text-align: right;
+  font-size: 0.7rem;
+}
+
+.line-content {
+  color: var(--ui-text-secondary);
+  white-space: pre;
+}
+
+/* Syntax colors */
+.syn-keyword { color: var(--syn-keyword); }
+.syn-string { color: var(--syn-string); }
+.syn-number { color: var(--syn-number); }
+.syn-comment { color: var(--syn-comment); font-style: italic; }
+.syn-function { color: var(--syn-function); }
+.syn-variable { color: var(--syn-variable); }
+.syn-operator { color: var(--syn-operator); }
+.syn-type { color: var(--syn-type); }
+.syn-tag { color: var(--syn-tag); }
+.syn-attr { color: var(--syn-attr); }
+.syn-value { color: var(--syn-value); }
+
+/* Typing cursor */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--warm-gold);
+  margin-left: 1px;
+  animation: blink-cursor 0.9s steps(2, start) infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink-cursor {
+  to { opacity: 0; }
+}
+
+/* ══════════════════════════════════════════
+   3. PRODUCT FLOW DIAGRAM
+   ══════════════════════════════════════════ */
+.flow-container {
+  margin-top: 63px;
+  position: relative;
+}
+
+.flow-stages {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  gap: 14px;
+}
+
+.flow-stage {
+  flex: 1;
+  max-width: 260px;
+  position: relative;
+  z-index: 2;
+}
+
+.flow-card {
+  background: var(--ui-bg-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.6s var(--ease-enterprise), border-color 0.6s, box-shadow 0.6s;
+}
+
+.flow-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ui-border-hover);
+  box-shadow: var(--shadow-float);
+}
+
+.flow-card-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--warm-gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.flow-card-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  color: var(--ui-text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.flow-card-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-tertiary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* Mini UI previews inside flow cards */
+.flow-preview {
+  background: var(--ui-bg-base);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 60px;
+}
+
+.preview-bar {
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 6px;
+}
+
+.preview-bar.full { width: 100%; background: var(--ui-bg-surface); }
+.preview-bar.mid { width: 65%; background: var(--ui-bg-surface); }
+.preview-bar.short { width: 40%; background: var(--ui-bg-surface); }
+
+.preview-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.preview-block {
+  flex: 1;
+  height: 24px;
+  background: var(--ui-bg-surface);
+  border-radius: 4px;
+}
+
+.preview-highlight {
+  background: rgba(122, 92, 56, 0.15) !important;
+  border: 1px solid rgba(122, 92, 56, 0.2);
+}
+
+/* SVG Connections */
+.flow-connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.connection-line {
+  fill: none;
+  stroke: var(--warm-gold);
+  stroke-width: 1.5;
+  opacity: 0.3;
+}
+
+.connection-dot {
+  fill: var(--warm-gold);
+  r: 3;
+}
+
+.flow-dot-anim {
+  fill: var(--warm-gold);
+  opacity: 0.9;
+}
+
+/* ══════════════════════════════════════════
+   4. BROWSER FRAME
+   ══════════════════════════════════════════ */
+.browser-frame {
+  background: var(--ui-bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  margin-top: 63px;
+}
+
+.browser-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--ui-bg-elevated);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.browser-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.browser-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.browser-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-text-muted);
+  font-size: 0.7rem;
+}
+
+.browser-url-bar {
+  flex: 1;
+  height: 30px;
+  background: var(--ui-bg-base);
+  border-radius: 7px;
+  border: 1px solid var(--ui-border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 6px;
+}
+
+.url-lock {
+  font-size: 0.65rem;
+  color: var(--status-green);
+}
+
+.url-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ui-text-tertiary);
+}
+
+.browser-content {
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Live product UI inside browser */
+.product-ui {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 400px;
+}
+
+.product-sidebar {
+  background: var(--ui-bg-elevated);
+  border-right: 1px solid var(--ui-border);
+  padding: 16px 0;
+}
+
+.product-sidebar-header {
+  padding: 0 16px 14px;
+  border-bottom: 1px solid var(--ui-border);
+  margin-bottom: 10px;
+}
+
+.product-sidebar-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--warm-gold);
+  letter-spacing: 0.12em;
+}
+
+.product-sidebar-nav { padding: 0 8px; }
+
+.product-main {
+  padding: 24px;
+  background: var(--ui-bg-base);
+}
+
+.product-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.product-main-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  color: var(--ui-text-primary);
+  font-weight: 500;
+}
+
+.product-main-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-elevated);
+  color: var(--ui-text-secondary);
+  transition: all 0.3s;
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Product cards grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.product-card {
+  background: var(--ui-bg-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  padding: 18px;
+  transition: all 0.3s var(--ease-enterprise);
+}
+
+.product-card:hover {
+  border-color: var(--ui-border-hover);
+  transform: translateY(-2px);
+}
+
+.product-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.product-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.product-card-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  padding: 3px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.product-card-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ui-text-primary);
+  margin-bottom: 4px;
+}
+
+.product-card-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-muted);
+  line-height: 1.5;
+}
+
+.product-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ui-border);
+}
+
+.product-card-metric {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ui-text-tertiary);
+}
+
+.product-card-metric span {
+  color: var(--ui-text-primary);
+  font-weight: 500;
+}
+
+/* Progress bar */
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--ui-bg-surface);
+  border-radius: 2px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 2.1s var(--ease-enterprise);
+  width: 0;
+}
+
+.progress-fill.animated {
+  width: var(--progress);
+}
+
+/* ══════════════════════════════════════════
+   5. BENTO PRODUCT GRID
+   ══════════════════════════════════════════ */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px;
+  margin-top: 63px;
+}
+
+.bento-cell {
+  background: var(--ui-bg-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 24px;
+  transition: all 0.6s var(--ease-enterprise);
+  position: relative;
+}
+
+.bento-cell:hover {
+  border-color: var(--ui-border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.bento-hero {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+  padding: 32px;
+}
+
+.bento-wide {
+  grid-column: span 2;
+}
+
+.bento-cell-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ui-text-muted);
+  margin-bottom: 10px;
+}
+
+.bento-cell-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  color: var(--ui-text-primary);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.bento-hero .bento-cell-title {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+}
+
+.bento-cell-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: var(--warm-gold);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.bento-hero .bento-cell-value {
+  font-size: 3.6rem;
+}
+
+.bento-cell-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ui-text-tertiary);
+  line-height: 1.5;
+}
+
+/* Bento chart */
+.bento-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 100px;
+  margin-top: 21px;
+  padding-top: 12px;
+}
+
+.bento-bar {
+  flex: 1;
+  background: rgba(196, 149, 106, 0.15);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: height 1.4s var(--ease-enterprise);
+  height: 0;
+}
+
+.bento-bar.animated {
+  height: var(--bar-height);
+}
+
+.bento-bar:hover {
+  background: rgba(196, 149, 106, 0.3);
+}
+
+/* Bento ring chart */
+.bento-ring-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.bento-ring {
+  width: 100px;
+  height: 100px;
+  position: relative;
+}
+
+.bento-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--ui-bg-surface);
+  stroke-width: 8;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--warm-gold);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 251;
+  transition: stroke-dashoffset 2.1s var(--ease-enterprise);
+}
+
+.ring-fill.animated {
+  stroke-dashoffset: var(--ring-offset);
+}
+
+.ring-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ui-text-primary);
+}
+
+/* ══════════════════════════════════════════
+   6. TERMINAL / CLI BLOCK
+   ══════════════════════════════════════════ */
+.terminal-block {
+  background: var(--ui-bg-base);
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  margin-top: 42px;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--ui-bg-elevated);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ui-text-muted);
+  margin-left: 8px;
+}
+
+.terminal-body {
+  padding: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  min-height: 200px;
+}
+
+.terminal-line {
+  color: var(--ui-text-secondary);
+  margin-bottom: 2px;
+}
+
+.terminal-prompt {
+  color: var(--warm-gold);
+}
+
+.terminal-success {
+  color: var(--status-green);
+}
+
+.terminal-info {
+  color: var(--status-blue);
+}
+
+.terminal-dim {
+  color: var(--ui-text-muted);
+}
+
+/* ══════════════════════════════════════════
+   TECHNIQUE LABELS
+   ══════════════════════════════════════════ */
+.technique-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 10px 18px;
+  background: rgba(122, 92, 56, 0.06);
+  border: 1px solid rgba(122, 92, 56, 0.12);
+  border-radius: 8px;
+}
+
+.technique-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.technique-rating {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.section-dark .technique-label {
+  background: rgba(196, 149, 106, 0.06);
+  border-color: rgba(196, 149, 106, 0.12);
+}
+
+.section-dark .technique-name { color: var(--warm-gold); }
+.section-dark .technique-rating { color: var(--ui-text-muted); }
+
+/* ══════════════════════════════════════════
+   CTA
+   ══════════════════════════════════════════ */
+.cta-section {
+  text-align: center;
+  padding: 120px 42px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin-bottom: 21px;
+}
+
+.cta-desc {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin-bottom: 42px;
+  line-height: 1.7;
+}
+
+.cta-button {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 18px 42px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  position: relative;
+  overflow: hidden;
+  transition: color 0.6s var(--ease-arc);
+  width: fit-content;
+}
+
+.cta-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--ease-arc);
+  z-index: -1;
+}
+
+.cta-button:hover {
+  color: var(--void);
+}
+
+.cta-button:hover::before {
+  transform: translateX(0);
+}
+
+/* ══════════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════════ */
+.footer {
+  text-align: center;
+  padding: 42px;
+  border-top: 1px solid rgba(122, 92, 56, 0.1);
+}
+
+.footer-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin-bottom: 7px;
+}
+
+.footer-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .vignettes-stage { height: 500px; }
+  .panel-left, .panel-float { display: none; }
+  .panel-main { width: 400px; }
+  .panel-right { width: 260px; right: 2%; }
+  .code-showcase { grid-template-columns: 1fr; }
+  .flow-stages { flex-wrap: wrap; justify-content: center; }
+  .flow-connections { display: none; }
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+  .bento-hero { grid-column: 1 / -1; grid-row: auto; }
+  .bento-wide { grid-column: span 1; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .section, .section-dark { padding: 80px 21px; }
+  .hero { padding: 80px 21px; }
+  .vignettes-stage { height: 350px; }
+  .panel-right { display: none; }
+  .panel-main { width: 90%; }
+  .flow-stage { max-width: 100%; }
+  .bento-grid { grid-template-columns: 1fr; }
+  .product-ui { grid-template-columns: 1fr; }
+  .product-sidebar { display: none; }
+  .product-grid { grid-template-columns: 1fr; }
+  .nav { padding: 14px 21px; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor-glow"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-brand">ARC GARDE</div>
+</nav>
+
+<!-- ═══════════════════════════════════
+     HERO
+     ═══════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-overline">Enterprise Product Graphics</div>
+  <h1 class="hero-title">
+    <span style="animation-delay: 0.3s">Product</span>
+    <span style="animation-delay: 0.5s">as</span>
+    <span style="animation-delay: 0.7s">the</span>
+    <span style="animation-delay: 0.9s">Graphic</span>
+  </h1>
+  <p class="hero-description">
+    The techniques that enterprise companies use to turn their own software into marketing visuals. Not effects on top of content. The product itself, elevated into art.
+  </p>
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    7 ENTERPRISE PATTERNS
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     1. FLOATING UI VIGNETTES
+     ═══════════════════════════════════ -->
+<section class="section-dark" id="vignettes">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Pattern 01</div>
+      <h2 class="section-title">Floating UI Vignettes</h2>
+      <p class="section-subtitle">
+        Product panels arranged in 3D space with perspective. The product sells itself by showing itself.
+      </p>
+      <div class="technique-label">
+        <span class="technique-name">perspective + transform-style: preserve-3d</span>
+        <span class="technique-rating">Looks 9/10 | Actually 3/10</span>
+      </div>
+    </div>
+
+    <div class="vignettes-stage reveal">
+      <!-- Main dashboard panel -->
+      <div class="ui-panel panel-main">
+        <div class="panel-chrome">
+          <div class="chrome-dot red"></div>
+          <div class="chrome-dot yellow"></div>
+          <div class="chrome-dot green"></div>
+          <span class="chrome-title">analytics.ag</span>
+        </div>
+        <div class="panel-body">
+          <div class="dash-header">
+            <span class="dash-title">Revenue Overview</span>
+            <span class="dash-badge">Live</span>
+          </div>
+          <div class="dash-metric">
+            <div class="dash-metric-value" data-counter="47850" data-prefix="$" data-suffix="">$0</div>
+            <div class="dash-metric-label">Monthly Recurring Revenue</div>
+            <div class="dash-metric-change">+12.4% from last month</div>
+          </div>
+          <div class="mini-chart">
+            <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="var(--warm-gold)" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="var(--warm-gold)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path class="chart-area" d="M0,70 L30,65 60,58 90,62 120,48 150,52 180,38 210,42 240,30 270,35 300,22 330,28 360,15 400,10 400,80 0,80 Z"/>
+              <path class="chart-line chart-line-animated" d="M0,70 L30,65 60,58 90,62 120,48 150,52 180,38 210,42 240,30 270,35 300,22 330,28 360,15 400,10"/>
+            </svg>
+          </div>
+          <div class="dash-stats-row">
+            <div class="dash-stat">
+              <div class="dash-stat-value" data-counter="1247" data-prefix="" data-suffix="">0</div>
+              <div class="dash-stat-label">Active Users</div>
+            </div>
+            <div class="dash-stat">
+              <div class="dash-stat-value">98.7%</div>
+              <div class="dash-stat-label">Uptime</div>
+            </div>
+            <div class="dash-stat">
+              <div class="dash-stat-value" data-counter="342" data-prefix="" data-suffix="">0</div>
+              <div class="dash-stat-label">Conversions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left sidebar panel -->
+      <div class="ui-panel panel-left">
+        <div class="panel-chrome">
+          <div class="chrome-dot red"></div>
+          <div class="chrome-dot yellow"></div>
+          <div class="chrome-dot green"></div>
+          <span class="chrome-title">navigation</span>
+        </div>
+        <div class="panel-body" style="padding: 8px;">
+          <div class="sidebar-item active">
+            <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--warm-gold);"></div></div>
+            <span class="sidebar-text">Dashboard</span>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-blue);"></div></div>
+            <span class="sidebar-text">Analytics</span>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-green);"></div></div>
+            <span class="sidebar-text">Projects</span>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-purple);"></div></div>
+            <span class="sidebar-text">Deployments</span>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-amber);"></div></div>
+            <span class="sidebar-text">Settings</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right notification panel -->
+      <div class="ui-panel panel-right">
+        <div class="panel-chrome">
+          <div class="chrome-dot red"></div>
+          <div class="chrome-dot yellow"></div>
+          <div class="chrome-dot green"></div>
+          <span class="chrome-title">activity</span>
+        </div>
+        <div class="panel-body" style="padding: 0;">
+          <div class="notif-item">
+            <div class="notif-avatar">QM</div>
+            <div class="notif-content">
+              <div class="notif-text"><strong>Quinten</strong> deployed to production</div>
+              <div class="notif-time">2 min ago</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-avatar">AG</div>
+            <div class="notif-content">
+              <div class="notif-text"><strong>System</strong> passed quality gate G3</div>
+              <div class="notif-time">14 min ago</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-avatar">CL</div>
+            <div class="notif-content">
+              <div class="notif-text"><strong>Claude</strong> completed IDWIP scan</div>
+              <div class="notif-time">21 min ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom float panel -->
+      <div class="ui-panel panel-float">
+        <div class="panel-chrome">
+          <div class="chrome-dot red"></div>
+          <div class="chrome-dot yellow"></div>
+          <div class="chrome-dot green"></div>
+          <span class="chrome-title">status</span>
+        </div>
+        <div class="panel-body" style="padding: 8px 12px;">
+          <div class="status-item">
+            <div class="status-left">
+              <div class="status-indicator" style="background: var(--status-green);"></div>
+              <span class="status-name">API</span>
+            </div>
+            <span class="status-value">42ms</span>
+          </div>
+          <div class="status-item">
+            <div class="status-left">
+              <div class="status-indicator" style="background: var(--status-green);"></div>
+              <span class="status-name">CDN</span>
+            </div>
+            <span class="status-value">7ms</span>
+          </div>
+          <div class="status-item">
+            <div class="status-left">
+              <div class="status-indicator" style="background: var(--status-amber);"></div>
+              <span class="status-name">Queue</span>
+            </div>
+            <span class="status-value">213ms</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     2. ANIMATED CODE BLOCK
+     ═══════════════════════════════════ -->
+<section class="section-dark" id="code-block">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Pattern 02</div>
+      <h2 class="section-title">Animated Code Blocks</h2>
+      <p class="section-subtitle">
+        Real syntax. Real typing. The code writes itself and the product comes alive in the preview beside it.
+      </p>
+      <div class="technique-label">
+        <span class="technique-name">recursive setTimeout + syntax spans</span>
+        <span class="technique-rating">Looks 8/10 | Actually 2/10</span>
+      </div>
+    </div>
+
+    <div class="code-showcase reveal">
+      <div class="code-description">
+        <h3>Ship with Confidence</h3>
+        <p>Deploy your entire stack with a single configuration. Type-safe, validated, instant.</p>
+        <ul class="code-feature-list">
+          <li>Automatic type inference</li>
+          <li>Zero-config deployments</li>
+          <li>Built-in edge functions</li>
+          <li>Real-time sync protocol</li>
+          <li>End-to-end encryption</li>
+        </ul>
+      </div>
+
+      <div class="code-editor">
+        <div class="editor-tabs">
+          <div class="editor-tab active">
+            <div class="tab-dot" style="background: var(--syn-type);"></div>
+            config.ts
+          </div>
+          <div class="editor-tab">
+            <div class="tab-dot" style="background: var(--syn-keyword);"></div>
+            deploy.ts
+          </div>
+          <div class="editor-tab">
+            <div class="tab-dot" style="background: var(--syn-string);"></div>
+            schema.ts
+          </div>
+        </div>
+        <div class="editor-body" id="codeTarget">
+          <!-- Lines injected by JS typing animation -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     3. PRODUCT FLOW DIAGRAM
+     ═══════════════════════════════════ -->
+<section class="section-dark" id="flow">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Pattern 03</div>
+      <h2 class="section-title">Product Flow Diagrams</h2>
+      <p class="section-subtitle">
+        Show how the product works as a visual pipeline. Each stage is a miniature UI. Connections animate data flowing between them.
+      </p>
+      <div class="technique-label">
+        <span class="technique-name">SVG paths + animateMotion + mini UIs</span>
+        <span class="technique-rating">Looks 9/10 | Actually 4/10</span>
+      </div>
+    </div>
+
+    <div class="flow-container reveal">
+      <svg class="flow-connections" id="flowSVG" viewBox="0 0 1400 300" preserveAspectRatio="none">
+        <!-- Connection paths drawn by JS -->
+      </svg>
+
+      <div class="flow-stages">
+        <div class="flow-stage">
+          <div class="flow-card">
+            <div class="flow-card-number">STEP 01</div>
+            <div class="flow-card-title">Client Intake</div>
+            <div class="flow-card-desc">49 questions answered. Zero guesswork. The foundation is set before a single line is written.</div>
+            <div class="flow-preview">
+              <div class="preview-bar full"></div>
+              <div class="preview-bar mid"></div>
+              <div class="preview-bar short"></div>
+              <div class="preview-row">
+                <div class="preview-block preview-highlight"></div>
+                <div class="preview-block"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-stage">
+          <div class="flow-card">
+            <div class="flow-card-number">STEP 02</div>
+            <div class="flow-card-title">Research + Build</div>
+            <div class="flow-card-desc">ICEL competitor analysis feeds into DVBL construction. 80% proven patterns, 20% creative play.</div>
+            <div class="flow-preview">
+              <div class="preview-row">
+                <div class="preview-block"></div>
+                <div class="preview-block"></div>
+                <div class="preview-block"></div>
+              </div>
+              <div class="preview-row">
+                <div class="preview-block preview-highlight" style="flex: 2;"></div>
+                <div class="preview-block"></div>
+              </div>
+              <div class="preview-bar mid" style="margin-top: 6px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-stage">
+          <div class="flow-card">
+            <div class="flow-card-number">STEP 03</div>
+            <div class="flow-card-title">Validate + Approve</div>
+            <div class="flow-card-desc">IDWIP runs 4 validation systems. The Ripple Effect ensures cross-page consistency.</div>
+            <div class="flow-preview">
+              <div class="preview-bar full" style="background: rgba(52, 211, 153, 0.2);"></div>
+              <div class="preview-bar full" style="background: rgba(52, 211, 153, 0.2);"></div>
+              <div class="preview-bar mid" style="background: rgba(52, 211, 153, 0.2);"></div>
+              <div class="preview-bar full" style="background: rgba(52, 211, 153, 0.2);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-stage">
+          <div class="flow-card">
+            <div class="flow-card-number">STEP 04</div>
+            <div class="flow-card-title">Deploy + Monitor</div>
+            <div class="flow-card-desc">Branch, PR, merge. Vercel auto-deploys. CRM auto-updates. The pipeline runs itself.</div>
+            <div class="flow-preview">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <div class="status-indicator" style="background: var(--status-green); width: 6px; height: 6px; border-radius: 50%;"></div>
+                <div class="preview-bar mid" style="margin: 0; flex: 1;"></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <div class="status-indicator" style="background: var(--status-green); width: 6px; height: 6px; border-radius: 50%;"></div>
+                <div class="preview-bar short" style="margin: 0; flex: 1;"></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="status-indicator" style="background: var(--status-green); width: 6px; height: 6px; border-radius: 50%;"></div>
+                <div class="preview-bar full" style="margin: 0; flex: 1;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated connection dots -->
+      <div class="flow-dot-track" id="flowDots"></div>
+    </div>
+
+    <!-- Terminal below the flow -->
+    <div class="terminal-block reveal" style="margin-top: 42px;">
+      <div class="terminal-header">
+        <div class="chrome-dot red"></div>
+        <div class="chrome-dot yellow"></div>
+        <div class="chrome-dot green"></div>
+        <span class="terminal-title">ag-deploy</span>
+      </div>
+      <div class="terminal-body" id="terminalTarget">
+        <!-- Lines injected by JS terminal animation -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     4. BROWSER FRAME WITH LIVE UI
+     ═══════════════════════════════════ -->
+<section class="section-dark" id="browser">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Pattern 04</div>
+      <h2 class="section-title">Browser Frame with Live Product</h2>
+      <p class="section-subtitle">
+        Wrap your actual product UI inside a browser chrome. It is the screenshot that moves. The demo that sells without a sales call.
+      </p>
+      <div class="technique-label">
+        <span class="technique-name">CSS browser chrome + product layout</span>
+        <span class="technique-rating">Looks 8/10 | Actually 2/10</span>
+      </div>
+    </div>
+
+    <div class="browser-frame reveal">
+      <div class="browser-toolbar">
+        <div class="browser-dots">
+          <div class="chrome-dot red"></div>
+          <div class="chrome-dot yellow"></div>
+          <div class="chrome-dot green"></div>
+        </div>
+        <div class="browser-nav">
+          <div class="browser-nav-btn">&larr;</div>
+          <div class="browser-nav-btn">&rarr;</div>
+        </div>
+        <div class="browser-url-bar">
+          <span class="url-lock">&#x1f512;</span>
+          <span class="url-text">app.arcgarde.com/projects</span>
+        </div>
+      </div>
+
+      <div class="browser-content">
+        <div class="product-ui">
+          <!-- Sidebar -->
+          <div class="product-sidebar">
+            <div class="product-sidebar-header">
+              <div class="product-sidebar-logo">AG</div>
+            </div>
+            <div class="product-sidebar-nav">
+              <div class="sidebar-item active">
+                <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--warm-gold);"></div></div>
+                <span class="sidebar-text">Projects</span>
+              </div>
+              <div class="sidebar-item">
+                <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-blue);"></div></div>
+                <span class="sidebar-text">Deployments</span>
+              </div>
+              <div class="sidebar-item">
+                <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-green);"></div></div>
+                <span class="sidebar-text">Analytics</span>
+              </div>
+              <div class="sidebar-item">
+                <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--status-purple);"></div></div>
+                <span class="sidebar-text">Team</span>
+              </div>
+              <div class="sidebar-item">
+                <div class="sidebar-icon"><div class="sidebar-icon-dot" style="background: var(--ui-text-muted);"></div></div>
+                <span class="sidebar-text">Settings</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div class="product-main">
+            <div class="product-main-header">
+              <div class="product-main-title">Active Projects</div>
+              <div class="product-main-actions">
+                <button class="action-btn">Filter</button>
+                <button class="action-btn primary">+ New Project</button>
+              </div>
+            </div>
+
+            <div class="product-grid">
+              <!-- Card 1 -->
+              <div class="product-card">
+                <div class="product-card-header">
+                  <div class="product-card-icon" style="background: rgba(196, 149, 106, 0.12); color: var(--warm-gold);">LH</div>
+                  <div class="product-card-status" style="background: rgba(52, 211, 153, 0.1); color: var(--status-green);">Deployed</div>
+                </div>
+                <div class="product-card-name">Lead Hunter Media</div>
+                <div class="product-card-desc">B2B lead generation platform</div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="background: var(--status-green); --progress: 100%;"></div>
+                </div>
+                <div class="product-card-footer">
+                  <div class="product-card-metric">Score: <span>98.7</span></div>
+                  <div class="product-card-metric"><span>12</span> pages</div>
+                </div>
+              </div>
+
+              <!-- Card 2 -->
+              <div class="product-card">
+                <div class="product-card-header">
+                  <div class="product-card-icon" style="background: rgba(96, 165, 250, 0.12); color: var(--status-blue);">RK</div>
+                  <div class="product-card-status" style="background: rgba(96, 165, 250, 0.1); color: var(--status-blue);">Building</div>
+                </div>
+                <div class="product-card-name">Rivera's Kitchen</div>
+                <div class="product-card-desc">Restaurant with online ordering</div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="background: var(--status-blue); --progress: 63%;"></div>
+                </div>
+                <div class="product-card-footer">
+                  <div class="product-card-metric">Score: <span>--</span></div>
+                  <div class="product-card-metric"><span>4</span> pages</div>
+                </div>
+              </div>
+
+              <!-- Card 3 -->
+              <div class="product-card">
+                <div class="product-card-header">
+                  <div class="product-card-icon" style="background: rgba(251, 191, 36, 0.12); color: var(--status-amber);">SG</div>
+                  <div class="product-card-status" style="background: rgba(251, 191, 36, 0.1); color: var(--status-amber);">Review</div>
+                </div>
+                <div class="product-card-name">Stellar Graphics</div>
+                <div class="product-card-desc">Creative design agency</div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="background: var(--status-amber); --progress: 84%;"></div>
+                </div>
+                <div class="product-card-footer">
+                  <div class="product-card-metric">Score: <span>94.2</span></div>
+                  <div class="product-card-metric"><span>7</span> pages</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     5. BENTO PRODUCT GRID
+     ═══════════════════════════════════ -->
+<section class="section-dark" id="bento">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Pattern 05</div>
+      <h2 class="section-title">Bento Product Grid</h2>
+      <p class="section-subtitle">
+        Product metrics arranged in a bento layout. Each cell is alive with its own animation. The grid tells the whole story at a glance.
+      </p>
+      <div class="technique-label">
+        <span class="technique-name">CSS Grid template-areas + per-cell animations</span>
+        <span class="technique-rating">Looks 8/10 | Actually 3/10</span>
+      </div>
+    </div>
+
+    <div class="bento-grid reveal" id="bentoGrid">
+      <!-- Hero cell -->
+      <div class="bento-cell bento-hero">
+        <div class="bento-cell-label">Total Revenue</div>
+        <div class="bento-cell-value" data-counter="284700" data-prefix="$" data-suffix="">$0</div>
+        <div class="bento-cell-desc">Across all client projects this quarter</div>
+        <div class="bento-bars">
+          <div class="bento-bar" style="--bar-height: 45%;"></div>
+          <div class="bento-bar" style="--bar-height: 62%;"></div>
+          <div class="bento-bar" style="--bar-height: 38%;"></div>
+          <div class="bento-bar" style="--bar-height: 75%;"></div>
+          <div class="bento-bar" style="--bar-height: 58%;"></div>
+          <div class="bento-bar" style="--bar-height: 82%;"></div>
+          <div class="bento-bar" style="--bar-height: 68%;"></div>
+          <div class="bento-bar" style="--bar-height: 91%;"></div>
+          <div class="bento-bar" style="--bar-height: 77%;"></div>
+          <div class="bento-bar" style="--bar-height: 95%;"></div>
+          <div class="bento-bar" style="--bar-height: 88%;"></div>
+          <div class="bento-bar" style="--bar-height: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Completion rate -->
+      <div class="bento-cell">
+        <div class="bento-cell-label">Completion Rate</div>
+        <div class="bento-cell-title">On-Time Delivery</div>
+        <div class="bento-ring-container">
+          <div class="bento-ring">
+            <svg viewBox="0 0 100 100">
+              <circle class="ring-track" cx="50" cy="50" r="40"/>
+              <circle class="ring-fill" cx="50" cy="50" r="40" style="--ring-offset: 25;"/>
+            </svg>
+            <div class="ring-value">94%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active projects -->
+      <div class="bento-cell">
+        <div class="bento-cell-label">Active</div>
+        <div class="bento-cell-value" data-counter="7" data-prefix="" data-suffix="">0</div>
+        <div class="bento-cell-desc">Projects in pipeline</div>
+      </div>
+
+      <!-- Quality score wide -->
+      <div class="bento-cell bento-wide">
+        <div class="bento-cell-label">Quality Scores</div>
+        <div class="bento-cell-title">IDWIP Validation Average</div>
+        <div style="display: flex; gap: 16px; margin-top: 14px;">
+          <div style="flex: 1;">
+            <div class="bento-cell-desc" style="margin-bottom: 6px;">DVAR</div>
+            <div class="progress-track" style="height: 6px;">
+              <div class="progress-fill" style="background: var(--status-green); --progress: 96%;"></div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <div class="bento-cell-desc" style="margin-bottom: 6px;">CURB</div>
+            <div class="progress-track" style="height: 6px;">
+              <div class="progress-fill" style="background: var(--status-green); --progress: 98%;"></div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <div class="bento-cell-desc" style="margin-bottom: 6px;">Responsive</div>
+            <div class="progress-track" style="height: 6px;">
+              <div class="progress-fill" style="background: var(--status-blue); --progress: 91%;"></div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <div class="bento-cell-desc" style="margin-bottom: 6px;">SEO</div>
+            <div class="progress-track" style="height: 6px;">
+              <div class="progress-fill" style="background: var(--warm-gold); --progress: 88%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deploy speed -->
+      <div class="bento-cell">
+        <div class="bento-cell-label">Deploy Time</div>
+        <div class="bento-cell-value" style="font-size: 1.8rem;">< 3s</div>
+        <div class="bento-cell-desc">Average time to production</div>
+      </div>
+
+      <!-- Client satisfaction -->
+      <div class="bento-cell">
+        <div class="bento-cell-label">Satisfaction</div>
+        <div class="bento-cell-value" data-counter="100" data-prefix="" data-suffix="%">0%</div>
+        <div class="bento-cell-desc">Client approval rate</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════
+     CTA
+     ═══════════════════════════════════ -->
+<section class="cta-section reveal">
+  <div class="section-label" style="justify-content: center;">Enterprise Patterns</div>
+  <h2 class="cta-title">The Product is the Graphic</h2>
+  <p class="cta-desc">
+    Every technique on this page is pure code. No Figma exports. No screenshots. Living, breathing product graphics that update themselves.
+  </p>
+  <a href="#" class="cta-button">Explore the System</a>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-brand">ARC GARDE</div>
+  <div class="footer-sub">Enterprise Product Graphics - 2026</div>
+</footer>
+
+<!-- ═══════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── CURSOR SYSTEM ──
+  const cursorGlow = document.querySelector('.cursor-glow');
+  const cursorDot = document.querySelector('.cursor-dot');
+  const cursorRing = document.querySelector('.cursor-ring');
+  let mouseX = 0, mouseY = 0;
+  let dotX = 0, dotY = 0, ringX = 0, ringY = 0, glowX = 0, glowY = 0;
+
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function animateCursor() {
+    dotX += (mouseX - dotX) * 0.7;
+    dotY += (mouseY - dotY) * 0.7;
+    ringX += (mouseX - ringX) * 0.14;
+    ringY += (mouseY - ringY) * 0.14;
+    glowX += (mouseX - glowX) * 0.07;
+    glowY += (mouseY - glowY) * 0.07;
+
+    cursorDot.style.left = dotX + 'px';
+    cursorDot.style.top = dotY + 'px';
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top = ringY + 'px';
+    cursorGlow.style.left = glowX + 'px';
+    cursorGlow.style.top = glowY + 'px';
+
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  // Hover effect on interactive elements
+  document.querySelectorAll('a, button, .ui-panel, .flow-card, .bento-cell, .product-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursorRing.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovering'));
+  });
+
+  // Hide cursor on touch devices
+  if ('ontouchstart' in window) {
+    [cursorGlow, cursorDot, cursorRing].forEach(el => el.style.display = 'none');
+  }
+
+
+  // ── NAV SCROLL ──
+  const nav = document.querySelector('.nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 100);
+  });
+
+
+  // ── REVEAL ON SCROLL ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+
+        // Trigger chart line drawing
+        const chartLine = entry.target.querySelector('.chart-line-animated');
+        if (chartLine) setTimeout(() => chartLine.classList.add('drawn'), 300);
+
+        // Trigger progress bars
+        entry.target.querySelectorAll('.progress-fill').forEach(bar => {
+          setTimeout(() => bar.classList.add('animated'), 300);
+        });
+
+        // Trigger bento bars
+        entry.target.querySelectorAll('.bento-bar').forEach((bar, i) => {
+          setTimeout(() => bar.classList.add('animated'), 100 + i * 70);
+        });
+
+        // Trigger ring charts
+        entry.target.querySelectorAll('.ring-fill').forEach(ring => {
+          setTimeout(() => ring.classList.add('animated'), 300);
+        });
+
+        // Trigger counters
+        entry.target.querySelectorAll('[data-counter]').forEach(el => {
+          animateCounter(el);
+        });
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+
+  // ── NUMBER COUNTER ANIMATION ──
+  function animateCounter(el) {
+    if (el.dataset.counted) return;
+    el.dataset.counted = 'true';
+
+    const target = parseInt(el.dataset.counter);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const duration = 2100; // 2.1s (AG timing)
+    const start = performance.now();
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(progress);
+      const current = Math.floor(eased * target);
+
+      el.textContent = prefix + current.toLocaleString() + suffix;
+
+      if (progress < 1) requestAnimationFrame(update);
+      else el.textContent = prefix + target.toLocaleString() + suffix;
+    }
+
+    requestAnimationFrame(update);
+  }
+
+
+  // ── ANIMATED CODE BLOCK ──
+  const codeLines = [
+    { num: 1, tokens: [
+      { text: 'import', cls: 'syn-keyword' }, { text: ' { ', cls: 'syn-operator' },
+      { text: 'defineConfig', cls: 'syn-function' }, { text: ' } ', cls: 'syn-operator' },
+      { text: 'from', cls: 'syn-keyword' }, { text: " '", cls: 'syn-string' },
+      { text: '@arcgarde/core', cls: 'syn-string' }, { text: "'", cls: 'syn-string' }
+    ]},
+    { num: 2, tokens: [] },
+    { num: 3, tokens: [
+      { text: '// Production configuration', cls: 'syn-comment' }
+    ]},
+    { num: 4, tokens: [
+      { text: 'export', cls: 'syn-keyword' }, { text: ' ', cls: '' },
+      { text: 'default', cls: 'syn-keyword' }, { text: ' ', cls: '' },
+      { text: 'defineConfig', cls: 'syn-function' }, { text: '({', cls: 'syn-operator' }
+    ]},
+    { num: 5, tokens: [
+      { text: '  project', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'stellar-graphics'", cls: 'syn-string' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 6, tokens: [
+      { text: '  framework', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'static'", cls: 'syn-string' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 7, tokens: [] },
+    { num: 8, tokens: [
+      { text: '  build', cls: 'syn-function' }, { text: ': {', cls: 'syn-operator' }
+    ]},
+    { num: 9, tokens: [
+      { text: '    output', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'dist'", cls: 'syn-string' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 10, tokens: [
+      { text: '    minify', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: 'true', cls: 'syn-number' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 11, tokens: [
+      { text: '    quality', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'enterprise'", cls: 'syn-string' },
+    ]},
+    { num: 12, tokens: [
+      { text: '  }', cls: 'syn-operator' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 13, tokens: [] },
+    { num: 14, tokens: [
+      { text: '  deploy', cls: 'syn-function' }, { text: ': {', cls: 'syn-operator' }
+    ]},
+    { num: 15, tokens: [
+      { text: '    provider', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'vercel'", cls: 'syn-string' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 16, tokens: [
+      { text: '    region', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: "'iad1'", cls: 'syn-string' }, { text: ',', cls: 'syn-operator' }
+    ]},
+    { num: 17, tokens: [
+      { text: '    autoScale', cls: 'syn-variable' }, { text: ': ', cls: 'syn-operator' },
+      { text: 'true', cls: 'syn-number' }
+    ]},
+    { num: 18, tokens: [
+      { text: '  }', cls: 'syn-operator' }
+    ]},
+    { num: 19, tokens: [
+      { text: '})', cls: 'syn-operator' }
+    ]},
+  ];
+
+  const codeTarget = document.getElementById('codeTarget');
+  let codeAnimStarted = false;
+
+  function startCodeAnimation() {
+    if (codeAnimStarted) return;
+    codeAnimStarted = true;
+
+    let lineIndex = 0;
+
+    function typeLine() {
+      if (lineIndex >= codeLines.length) {
+        // Remove last cursor
+        const cursors = codeTarget.querySelectorAll('.typing-cursor');
+        cursors.forEach(c => c.remove());
+        return;
+      }
+
+      const line = codeLines[lineIndex];
+      const lineEl = document.createElement('div');
+      lineEl.className = 'editor-line';
+
+      const numEl = document.createElement('span');
+      numEl.className = 'line-number';
+      numEl.textContent = line.num;
+
+      const contentEl = document.createElement('span');
+      contentEl.className = 'line-content';
+
+      lineEl.appendChild(numEl);
+      lineEl.appendChild(contentEl);
+
+      // Remove previous cursor
+      const prevCursors = codeTarget.querySelectorAll('.typing-cursor');
+      prevCursors.forEach(c => c.remove());
+
+      codeTarget.appendChild(lineEl);
+
+      if (line.tokens.length === 0) {
+        contentEl.innerHTML = '&nbsp;';
+        lineIndex++;
+        setTimeout(typeLine, 60);
+        return;
+      }
+
+      let tokenIndex = 0;
+      let charIndex = 0;
+      const cursor = document.createElement('span');
+      cursor.className = 'typing-cursor';
+
+      function typeChar() {
+        if (tokenIndex >= line.tokens.length) {
+          cursor.remove();
+          lineIndex++;
+          setTimeout(typeLine, 90);
+          return;
+        }
+
+        const token = line.tokens[tokenIndex];
+
+        if (charIndex === 0) {
+          const span = document.createElement('span');
+          if (token.cls) span.className = token.cls;
+          span.dataset.tokenIndex = tokenIndex;
+          contentEl.appendChild(span);
+        }
+
+        const span = contentEl.querySelector(`[data-token-index="${tokenIndex}"]`);
+        span.textContent = token.text.slice(0, charIndex + 1);
+
+        // Place cursor after current span
+        cursor.remove();
+        contentEl.appendChild(cursor);
+
+        charIndex++;
+        if (charIndex >= token.text.length) {
+          charIndex = 0;
+          tokenIndex++;
+        }
+
+        setTimeout(typeChar, 18 + Math.random() * 22);
+      }
+
+      typeChar();
+    }
+
+    typeLine();
+  }
+
+  // Observe code section
+  const codeSection = document.getElementById('code-block');
+  const codeObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) startCodeAnimation();
+  }, { threshold: 0.3 });
+  codeObserver.observe(codeSection);
+
+
+  // ── TERMINAL ANIMATION ──
+  const terminalLines = [
+    { text: '$ ag deploy --project stellar-graphics', cls: '' },
+    { text: '', cls: '' },
+    { text: '  Validating configuration...', cls: 'terminal-info' },
+    { text: '  Running IDWIP pre-flight scan...', cls: 'terminal-info' },
+    { text: '  DVAR check .......... PASSED', cls: 'terminal-success' },
+    { text: '  CURB check .......... PASSED', cls: 'terminal-success' },
+    { text: '  Responsive check .... PASSED', cls: 'terminal-success' },
+    { text: '  SEO validation ...... PASSED', cls: 'terminal-success' },
+    { text: '', cls: '' },
+    { text: '  Creating deployment branch...', cls: 'terminal-info' },
+    { text: '  Pushing to Arc-Garde-Project/stellar-graphics', cls: 'terminal-dim' },
+    { text: '  Opening PR #42 for review...', cls: 'terminal-info' },
+    { text: '', cls: '' },
+    { text: '  Deployed to stellar-graphics.vercel.app', cls: 'terminal-success' },
+    { text: '  CRM status updated: Deployed', cls: 'terminal-success' },
+    { text: '', cls: '' },
+    { text: '$ _', cls: 'terminal-prompt' }
+  ];
+
+  const terminalTarget = document.getElementById('terminalTarget');
+  let termAnimStarted = false;
+
+  function startTerminalAnimation() {
+    if (termAnimStarted) return;
+    termAnimStarted = true;
+
+    let i = 0;
+
+    function addLine() {
+      if (i >= terminalLines.length) return;
+
+      const line = terminalLines[i];
+      const el = document.createElement('div');
+      el.className = 'terminal-line';
+      if (line.cls) el.classList.add(line.cls);
+      el.textContent = line.text || '\u00A0';
+      terminalTarget.appendChild(el);
+
+      i++;
+      const delay = line.text.includes('$') ? 300 : (line.text.includes('PASSED') ? 210 : 120);
+      setTimeout(addLine, delay);
+    }
+
+    addLine();
+  }
+
+  // Observe terminal
+  const flowSection = document.getElementById('flow');
+  const termObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      setTimeout(startTerminalAnimation, 700);
+    }
+  }, { threshold: 0.2 });
+  termObserver.observe(flowSection);
+
+
+  // ── FLOW CONNECTION ANIMATION ──
+  const flowStages = document.querySelectorAll('.flow-stage');
+  const flowSVG = document.getElementById('flowSVG');
+
+  function drawFlowConnections() {
+    if (flowStages.length < 2) return;
+
+    const svgRect = flowSVG.getBoundingClientRect();
+    if (svgRect.width === 0) return;
+
+    let pathsHTML = '';
+
+    for (let i = 0; i < flowStages.length - 1; i++) {
+      const card1 = flowStages[i].querySelector('.flow-card');
+      const card2 = flowStages[i + 1].querySelector('.flow-card');
+
+      const r1 = card1.getBoundingClientRect();
+      const r2 = card2.getBoundingClientRect();
+
+      // Convert to SVG coordinates
+      const x1 = ((r1.right - svgRect.left) / svgRect.width) * 1400;
+      const y1 = ((r1.top + r1.height / 2 - svgRect.top) / svgRect.height) * 300;
+      const x2 = ((r2.left - svgRect.left) / svgRect.width) * 1400;
+      const y2 = ((r2.top + r2.height / 2 - svgRect.top) / svgRect.height) * 300;
+
+      const midX = (x1 + x2) / 2;
+
+      const pathId = 'flowPath' + i;
+      pathsHTML += `
+        <path id="${pathId}" class="connection-line" d="M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}"/>
+        <circle class="flow-dot-anim" r="4">
+          <animateMotion dur="2.1s" repeatCount="indefinite">
+            <mpath href="#${pathId}"/>
+          </animateMotion>
+        </circle>
+      `;
+    }
+
+    flowSVG.innerHTML = pathsHTML;
+  }
+
+  // Draw connections after layout settles
+  setTimeout(drawFlowConnections, 700);
+  window.addEventListener('resize', () => {
+    clearTimeout(window._flowResize);
+    window._flowResize = setTimeout(drawFlowConnections, 300);
+  });
+
+
+  // ── PARALLAX FLOAT ON VIGNETTES ──
+  const vignetteSection = document.getElementById('vignettes');
+  const panels = vignetteSection.querySelectorAll('.ui-panel');
+
+  vignetteSection.addEventListener('mousemove', (e) => {
+    const rect = vignetteSection.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+    panels.forEach((panel, i) => {
+      const factor = (i + 1) * 3;
+      const baseTransform = panel.style.transform || getComputedStyle(panel).transform;
+      panel.style.transform = panel.dataset.baseTransform
+        ? panel.dataset.baseTransform + ` translate(${x * factor}px, ${y * factor}px)`
+        : `translate(${x * factor}px, ${y * factor}px)`;
+    });
+  });
+
+  // Store base transforms
+  panels.forEach(panel => {
+    panel.dataset.baseTransform = getComputedStyle(panel).transform !== 'none'
+      ? '' : '';
+  });
+
+})();
+</script>
+</body>
+</html>

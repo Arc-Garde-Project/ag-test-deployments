@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Below the Iceberg | Arc Garde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://ulhrqamsvaohirawndyu.supabase.co/storage/v1/object/public/AG%20-%20Assets/AG%20Arc%20Garde%20icons/AG%20FAV.png">
+    <style>
+        /* ===============================================================
+           BELOW THE ICEBERG — Techniques Demo
+           Sacred Numbers: 7 / 3
+        =============================================================== */
+
+        @property --gradient-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        :root {
+            --void: #F7F3EE;
+            --void-warm: #F0EBE4;
+            --void-cool: #EEEAE5;
+            --void-dark: #171513;
+            --void-dark-warm: #1E1B18;
+            --border-subtle: rgba(10, 9, 8, 0.1);
+            --accent: #7A5C38;
+            --accent-bright: #5C4229;
+            --accent-glow: rgba(122, 92, 56, 0.25);
+            --accent-subtle: rgba(92, 66, 41, 0.06);
+            --accent-warm: #C4956A;
+            --text-primary: #0A0A0A;
+            --text-secondary: rgba(10, 10, 10, 0.82);
+            --text-tertiary: rgba(10, 10, 10, 0.58);
+            --hero-text: #FAF6F1;
+            --hero-text-muted: rgba(250, 246, 241, 0.7);
+            --hero-border: rgba(250, 246, 241, 0.14);
+            --ease-arc: cubic-bezier(0.22, 0.61, 0.36, 1);
+            --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Scrollbar */
+        html { scrollbar-width: thin; scrollbar-color: var(--accent) var(--void); }
+        ::-webkit-scrollbar { width: 7px; }
+        ::-webkit-scrollbar-track { background: var(--void); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html {
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body {
+            background: var(--void);
+            color: var(--text-primary);
+            font-family: 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        body * { cursor: none; }
+        h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+        p, li, blockquote { text-wrap: pretty; }
+
+        /* ===============================================================
+           CURSOR
+        =============================================================== */
+        .cursor-dot {
+            position: fixed;
+            width: 7px; height: 7px;
+            background: var(--accent-bright);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s, width 0.3s var(--ease-arc), height 0.3s var(--ease-arc);
+            box-shadow: 0 0 7px var(--accent), 0 0 14px var(--accent-glow);
+        }
+        .cursor-ring {
+            position: fixed;
+            width: 42px; height: 42px;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.3s, width 0.3s var(--ease-arc), height 0.3s var(--ease-arc);
+        }
+        body:hover .cursor-dot, body:hover .cursor-ring { opacity: 1; }
+        .cursor-dot.hovering { width: 3.5px; height: 3.5px; }
+        .cursor-ring.hovering { width: 63px; height: 63px; border-color: var(--accent-bright); }
+
+        /* ===============================================================
+           SCROLL PROGRESS BAR
+        =============================================================== */
+        .scroll-progress {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: var(--accent);
+            transform-origin: left;
+            transform: scaleX(0);
+            z-index: 9000;
+        }
+        /* CSS scroll-driven version (modern browsers) */
+        @supports (animation-timeline: scroll()) {
+            .scroll-progress {
+                animation: progressGrow linear;
+                animation-timeline: scroll();
+            }
+            @keyframes progressGrow {
+                from { transform: scaleX(0); }
+                to { transform: scaleX(1); }
+            }
+        }
+
+        /* ===============================================================
+           SECTION LABELS (consistent across all sections)
+        =============================================================== */
+        .section-label {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.56rem, 0.5rem + 0.2vw, 0.7rem);
+            font-weight: 400;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            margin-bottom: clamp(1rem, 0.7rem + 1vw, 2rem);
+        }
+        .section-label--light { color: var(--accent-warm); }
+        .section-label--dark { color: var(--text-tertiary); }
+
+        .technique-note {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.56rem, 0.5rem + 0.15vw, 0.63rem);
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 0.42em 1em;
+            border: 1px solid;
+            border-radius: 100px;
+            width: fit-content;
+            margin-top: clamp(1rem, 0.7rem + 1vw, 2rem);
+        }
+        .technique-note--light {
+            color: var(--accent-warm);
+            border-color: rgba(196, 149, 106, 0.3);
+        }
+        .technique-note--dark {
+            color: var(--text-tertiary);
+            border-color: var(--border-subtle);
+        }
+
+        /* Divider */
+        .section-divider {
+            width: 86%;
+            margin: 0 auto;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(122,92,56,0.25) 20%, rgba(122,92,56,0.12) 50%, rgba(122,92,56,0.25) 80%, transparent 100%);
+        }
+
+        /* ===============================================================
+           1. HERO — Generative Flow Field + Gradient Text
+        =============================================================== */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--void-dark);
+            overflow: hidden;
+        }
+
+        .hero-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .hero-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+        }
+
+        .hero-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.8rem, 2rem + 4vw, 6.3rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            line-height: 1.2;
+            /* Gradient text masking */
+            background: linear-gradient(135deg, var(--hero-text), var(--accent-warm), var(--hero-text), var(--accent-warm));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 7s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.4rem);
+            font-weight: 300;
+            font-style: italic;
+            color: var(--hero-text-muted);
+            line-height: 1.8;
+            max-width: 600px;
+            margin: clamp(1.5rem, 1rem + 1vw, 2.5rem) auto 0;
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            bottom: clamp(1.5rem, 1rem + 1vw, 3rem);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .hero-scroll-line {
+            width: 1px;
+            height: 42px;
+            background: linear-gradient(to bottom, var(--accent-warm), transparent);
+            animation: scrollPulse 2.1s ease-in-out infinite;
+        }
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; transform: scaleY(1); }
+            50% { opacity: 0.3; transform: scaleY(0.6); }
+        }
+        .hero-scroll-text {
+            font-family: 'Cinzel', serif;
+            font-size: 0.56rem;
+            letter-spacing: 0.21em;
+            text-transform: uppercase;
+            color: var(--hero-text-muted);
+        }
+
+        /* ===============================================================
+           2. CLIP-PATH REVEALS
+        =============================================================== */
+        .clip-section {
+            padding: clamp(4rem, 3rem + 4vw, 9rem) clamp(1rem, 0.5rem + 2vw, 3rem);
+            background: var(--void);
+            text-align: center;
+        }
+
+        .clip-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+            margin-bottom: clamp(3rem, 2rem + 3vw, 6rem);
+        }
+
+        .clip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .clip-card {
+            height: 350px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1.5rem, 1rem + 1vw, 2.5rem);
+            transition: clip-path 0.9s var(--ease-entrance);
+        }
+
+        /* Circle reveal */
+        .clip-card--circle {
+            background: var(--void-dark);
+            color: var(--hero-text);
+            clip-path: circle(0% at 50% 50%);
+        }
+        .clip-card--circle.revealed { clip-path: circle(75% at 50% 50%); }
+
+        /* Diagonal wipe */
+        .clip-card--diagonal {
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: var(--hero-text);
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+        }
+        .clip-card--diagonal.revealed { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+
+        /* Diamond expand */
+        .clip-card--diamond {
+            background: var(--void-dark-warm);
+            color: var(--hero-text);
+            clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+        }
+        .clip-card--diamond.revealed { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+
+        .clip-card-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.125rem, 0.952rem + 0.74vw, 1.5rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.7rem;
+        }
+        .clip-card-desc {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(0.938rem, 0.909rem + 0.12vw, 1rem);
+            font-weight: 400;
+            line-height: 1.6;
+            opacity: 0.7;
+        }
+        .clip-card-code {
+            font-family: monospace;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            margin-top: 1rem;
+        }
+
+        /* ===============================================================
+           3. STACKING CARDS
+        =============================================================== */
+        .stacking-section {
+            position: relative;
+            padding-top: clamp(4rem, 3rem + 4vw, 9rem);
+            background: var(--void-warm);
+        }
+
+        .stacking-header {
+            text-align: center;
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+            margin-bottom: clamp(3rem, 2rem + 3vw, 6rem);
+        }
+
+        .stacking-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+        }
+
+        .stacking-wrapper {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+        }
+
+        .stack-card {
+            position: sticky;
+            height: 70vh;
+            min-height: 350px;
+            margin-bottom: 60px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(2rem, 1.5rem + 2vw, 4rem);
+            text-align: center;
+            transition: transform 0.3s var(--ease-arc), filter 0.3s var(--ease-arc);
+        }
+
+        .stack-card:nth-child(1) {
+            top: 21px;
+            background: var(--void-dark);
+            color: var(--hero-text);
+        }
+        .stack-card:nth-child(2) {
+            top: 42px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--accent));
+            color: var(--hero-text);
+        }
+        .stack-card:nth-child(3) {
+            top: 63px;
+            background: var(--void);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+        }
+        .stack-card:nth-child(4) {
+            top: 84px;
+            background: var(--void-dark-warm);
+            color: var(--hero-text);
+        }
+
+        .stack-card-number {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(3rem, 2rem + 3vw, 5.6rem);
+            font-weight: 400;
+            opacity: 0.15;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        .stack-card:nth-child(2) .stack-card-number { opacity: 0.25; }
+
+        .stack-card-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.313rem, 1.054rem + 1.1vw, 1.875rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            margin-bottom: 1rem;
+        }
+
+        .stack-card-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 0.9rem + 0.4vw, 1.19rem);
+            font-weight: 400;
+            line-height: 1.7;
+            max-width: 500px;
+            opacity: 0.8;
+        }
+
+        .stacking-spacer { height: 30vh; background: var(--void-warm); }
+
+        /* ===============================================================
+           4. HORIZONTAL SCROLL
+        =============================================================== */
+        .horizontal-section {
+            height: 350vh;
+            position: relative;
+            background: var(--void-dark);
+        }
+
+        .horizontal-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .horizontal-header {
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+            margin-bottom: clamp(1.5rem, 1rem + 1vw, 2.5rem);
+        }
+
+        .horizontal-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.5rem, 1.155rem + 1.47vw, 2.25rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--hero-text);
+        }
+
+        .horizontal-track {
+            display: flex;
+            gap: clamp(1rem, 0.7rem + 1vw, 2rem);
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+            will-change: transform;
+        }
+
+        .h-card {
+            flex-shrink: 0;
+            width: clamp(300px, 30vw, 420px);
+            height: 60vh;
+            min-height: 300px;
+            border-radius: 14px;
+            padding: clamp(1.5rem, 1rem + 1.5vw, 3rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .h-card:nth-child(1) { background: rgba(122, 92, 56, 0.15); border: 1px solid rgba(122, 92, 56, 0.2); }
+        .h-card:nth-child(2) { background: rgba(196, 149, 106, 0.1); border: 1px solid rgba(196, 149, 106, 0.15); }
+        .h-card:nth-child(3) { background: rgba(122, 92, 56, 0.15); border: 1px solid rgba(122, 92, 56, 0.2); }
+        .h-card:nth-child(4) { background: rgba(196, 149, 106, 0.1); border: 1px solid rgba(196, 149, 106, 0.15); }
+        .h-card:nth-child(5) { background: rgba(122, 92, 56, 0.15); border: 1px solid rgba(122, 92, 56, 0.2); }
+        .h-card:nth-child(6) { background: rgba(196, 149, 106, 0.1); border: 1px solid rgba(196, 149, 106, 0.15); }
+
+        .h-card-number {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.1rem, 1.5rem + 2vw, 3.5rem);
+            font-weight: 400;
+            color: var(--accent-warm);
+            opacity: 0.3;
+            line-height: 1;
+            margin-bottom: auto;
+        }
+
+        .h-card-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.125rem, 0.952rem + 0.74vw, 1.5rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--hero-text);
+            margin-bottom: 0.7rem;
+        }
+
+        .h-card-desc {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(0.875rem, 0.84rem + 0.15vw, 0.95rem);
+            font-weight: 400;
+            color: var(--hero-text-muted);
+            line-height: 1.6;
+        }
+
+        /* ===============================================================
+           5. SVG LINE DRAWING (scroll-driven)
+        =============================================================== */
+        .svg-draw-section {
+            position: relative;
+            height: 300vh;
+            background: var(--void);
+        }
+
+        .svg-draw-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+        }
+
+        .svg-draw-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.5rem, 1.155rem + 1.47vw, 2.25rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+            margin-bottom: clamp(1.5rem, 1rem + 1vw, 3rem);
+        }
+
+        .draw-svg {
+            width: min(80%, 700px);
+            height: auto;
+        }
+
+        .draw-path {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+
+        .draw-path-ghost {
+            fill: none;
+            stroke: var(--border-subtle);
+            stroke-width: 1;
+            stroke-linecap: round;
+        }
+
+        .svg-draw-progress {
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-top: clamp(1rem, 0.7rem + 1vw, 2rem);
+        }
+
+        /* ===============================================================
+           6. MIX-BLEND-MODE — Auto-Inverting Text
+        =============================================================== */
+        .blend-section {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .blend-half {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .blend-half--dark { background: var(--void-dark); }
+        .blend-half--light { background: var(--void); }
+
+        .blend-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(4rem, 3rem + 5vw, 9rem);
+            font-weight: 500;
+            color: white;
+            mix-blend-mode: difference;
+            white-space: nowrap;
+            letter-spacing: 0.07em;
+            z-index: 2;
+        }
+
+        .blend-circle {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: white;
+            mix-blend-mode: exclusion;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            transition: width 0.6s var(--ease-arc), height 0.6s var(--ease-arc);
+        }
+
+        .blend-note {
+            position: absolute;
+            bottom: clamp(1.5rem, 1rem + 1vw, 3rem);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4;
+        }
+
+        /* ===============================================================
+           7. 3D DEPTH PLANES (CSS-only parallax)
+        =============================================================== */
+        .depth-section {
+            height: 250vh;
+            perspective: 1px;
+            transform-style: preserve-3d;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+            background: var(--void-dark);
+        }
+
+        .depth-layer {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+            font-family: 'Cinzel', serif;
+            font-weight: 400;
+            letter-spacing: 0.07em;
+        }
+
+        .depth-layer--back {
+            transform: translateZ(-2px) scale(3);
+            color: rgba(196, 149, 106, 0.08);
+            font-size: clamp(8rem, 6rem + 8vw, 18rem);
+            top: 5vh;
+        }
+
+        .depth-layer--mid {
+            transform: translateZ(-0.5px) scale(1.5);
+            color: rgba(122, 92, 56, 0.15);
+            font-size: clamp(4rem, 3rem + 4vw, 9rem);
+            top: 20vh;
+        }
+
+        .depth-layer--front {
+            transform: translateZ(0);
+            top: 35vh;
+            flex-direction: column;
+            text-align: center;
+            padding: 0 clamp(1rem, 0.5rem + 2vw, 3rem);
+        }
+
+        .depth-front-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--hero-text);
+            margin-bottom: 1rem;
+        }
+
+        .depth-front-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 0.9rem + 0.4vw, 1.19rem);
+            font-weight: 300;
+            font-style: italic;
+            color: var(--hero-text-muted);
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .depth-content {
+            position: relative;
+            z-index: 1;
+            background: var(--void-dark);
+            padding: clamp(4rem, 3rem + 4vw, 9rem) clamp(1rem, 0.5rem + 2vw, 3rem);
+        }
+
+        /* ===============================================================
+           8. MULTI-STEP CHOREOGRAPHY
+        =============================================================== */
+        .choreo-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--void);
+            padding: clamp(4rem, 3rem + 4vw, 9rem) clamp(1rem, 0.5rem + 2vw, 3rem);
+            overflow: hidden;
+        }
+
+        .choreo-stage {
+            width: min(400px, 90vw);
+            height: min(400px, 90vw);
+            position: relative;
+            margin-bottom: clamp(2rem, 1.5rem + 2vw, 4rem);
+        }
+
+        .choreo-piece {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            border-radius: 7px;
+            opacity: 0;
+        }
+
+        .choreo-piece.animate {
+            animation: assemble 3s var(--ease-entrance) both;
+        }
+
+        .choreo-piece:nth-child(1) { --ex: 98px; --ey: 98px; background: var(--accent); animation-delay: 0s; }
+        .choreo-piece:nth-child(2) { --ex: 168px; --ey: 98px; background: var(--accent-warm); animation-delay: 0.14s; }
+        .choreo-piece:nth-child(3) { --ex: 238px; --ey: 98px; background: var(--accent-bright); animation-delay: 0.28s; }
+        .choreo-piece:nth-child(4) { --ex: 98px; --ey: 168px; background: var(--accent-warm); animation-delay: 0.42s; }
+        .choreo-piece:nth-child(5) { --ex: 168px; --ey: 168px; background: var(--accent); animation-delay: 0.56s; }
+        .choreo-piece:nth-child(6) { --ex: 238px; --ey: 168px; background: var(--accent-warm); animation-delay: 0.7s; }
+        .choreo-piece:nth-child(7) { --ex: 98px; --ey: 238px; background: var(--accent-bright); animation-delay: 0.84s; }
+        .choreo-piece:nth-child(8) { --ex: 168px; --ey: 238px; background: var(--accent-warm); animation-delay: 0.98s; }
+        .choreo-piece:nth-child(9) { --ex: 238px; --ey: 238px; background: var(--accent); animation-delay: 1.12s; }
+
+        @keyframes assemble {
+            0%   { opacity: 0; transform: translate(-200px, -200px) rotate(-180deg) scale(0); }
+            15%  { opacity: 1; transform: translate(300px, 50px) rotate(90deg) scale(0.5); }
+            40%  { transform: translate(var(--ex), -70px) rotate(10deg) scale(1.2); }
+            60%  { transform: translate(var(--ex), calc(var(--ey) + 21px)) rotate(-5deg) scale(0.95); }
+            80%  { transform: translate(var(--ex), calc(var(--ey) - 7px)) rotate(2deg) scale(1.03); }
+            100% { opacity: 1; transform: translate(var(--ex), var(--ey)) rotate(0deg) scale(1); }
+        }
+
+        .choreo-piece.animate.settled {
+            animation: pulse 4.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .choreo-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.5rem, 1.155rem + 1.47vw, 2.25rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+            margin-bottom: 0.7rem;
+        }
+
+        .choreo-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 0.9rem + 0.4vw, 1.19rem);
+            font-weight: 400;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        /* ===============================================================
+           9. SVG DISTORTION ON HOVER
+        =============================================================== */
+        .distort-section {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--void-dark);
+            padding: clamp(4rem, 3rem + 4vw, 9rem) clamp(1rem, 0.5rem + 2vw, 3rem);
+            position: relative;
+        }
+
+        .distort-text {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(3rem, 2rem + 4vw, 7rem);
+            font-weight: 500;
+            color: var(--hero-text);
+            letter-spacing: 0.07em;
+            transition: filter 0.3s ease;
+            text-align: center;
+        }
+
+        .distort-text:hover {
+            filter: url(#distortion);
+        }
+
+        .distort-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 0.9rem + 0.4vw, 1.19rem);
+            font-weight: 300;
+            font-style: italic;
+            color: var(--hero-text-muted);
+            margin-top: clamp(1.5rem, 1rem + 1vw, 2.5rem);
+            text-align: center;
+        }
+
+        /* ===============================================================
+           CLOSING
+        =============================================================== */
+        .closing {
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--void);
+            padding: clamp(4rem, 3rem + 4vw, 9rem) clamp(1rem, 0.5rem + 2vw, 3rem);
+            text-align: center;
+        }
+
+        .closing-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.875rem, 1.357rem + 2.21vw, 3rem);
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+            max-width: 600px;
+            margin-bottom: clamp(1.5rem, 1rem + 1vw, 2.5rem);
+        }
+
+        .closing-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.33rem);
+            font-weight: 300;
+            font-style: italic;
+            color: var(--text-secondary);
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .closing-accent {
+            color: var(--accent-bright);
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        /* ===============================================================
+           RESPONSIVE
+        =============================================================== */
+        @media (max-width: 768px) {
+            .blend-text { font-size: clamp(2.5rem, 6vw, 4rem); }
+            .blend-circle { width: 180px; height: 180px; }
+            .depth-layer--back { font-size: 6rem; }
+            .depth-layer--mid { font-size: 3rem; }
+            .choreo-stage { width: 300px; height: 300px; }
+            .choreo-piece { width: 42px; height: 42px; }
+            .choreo-piece:nth-child(1) { --ex: 72px; --ey: 72px; }
+            .choreo-piece:nth-child(2) { --ex: 126px; --ey: 72px; }
+            .choreo-piece:nth-child(3) { --ex: 180px; --ey: 72px; }
+            .choreo-piece:nth-child(4) { --ex: 72px; --ey: 126px; }
+            .choreo-piece:nth-child(5) { --ex: 126px; --ey: 126px; }
+            .choreo-piece:nth-child(6) { --ex: 180px; --ey: 126px; }
+            .choreo-piece:nth-child(7) { --ex: 72px; --ey: 180px; }
+            .choreo-piece:nth-child(8) { --ex: 126px; --ey: 180px; }
+            .choreo-piece:nth-child(9) { --ex: 180px; --ey: 180px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .cursor-dot, .cursor-ring { display: none !important; }
+            body, body * { cursor: auto; }
+            .horizontal-track { transform: none !important; }
+        }
+
+        @media (pointer: coarse) {
+            .cursor-dot, .cursor-ring { display: none !important; }
+            body, body * { cursor: auto; }
+            .blend-circle { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cursor -->
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- SVG Filters (hidden, referenced by CSS) -->
+    <svg style="position:absolute;width:0;height:0;">
+        <defs>
+            <filter id="distortion">
+                <feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="3" result="noise">
+                    <animate attributeName="baseFrequency" dur="0.6s" values="0.015;0.06;0.015" repeatCount="indefinite"/>
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="25" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- ============================================================
+         1. HERO — Generative Flow Field + Gradient Text
+    ============================================================ -->
+    <section class="hero" id="hero">
+        <canvas class="hero-canvas" id="heroCanvas"></canvas>
+        <div class="hero-vignette"></div>
+        <div class="hero-content">
+            <p class="section-label section-label--light">Below the Iceberg</p>
+            <h1 class="hero-heading">The techniques that look impossible</h1>
+            <p class="hero-sub">Every effect on this page looks like it requires a design team, a WebGL engineer, and a month of work. In reality, each one is a simple pattern repeated. Scroll to see them all.</p>
+        </div>
+        <div class="hero-scroll-hint">
+            <div class="hero-scroll-line"></div>
+            <span class="hero-scroll-text">Scroll</span>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         2. CLIP-PATH REVEALS
+    ============================================================ -->
+    <div class="section-divider"></div>
+    <section class="clip-section">
+        <p class="section-label section-label--dark">Technique 01 / Clip-Path Reveals</p>
+        <h2 class="clip-heading">One CSS property. Three geometries.</h2>
+        <div class="clip-grid">
+            <div class="clip-card clip-card--circle" data-clip>
+                <p class="clip-card-title">Circle Expand</p>
+                <p class="clip-card-desc">Reveals from center outward. Scroll down to trigger.</p>
+                <p class="clip-card-code">clip-path: circle(0% &rarr; 75%)</p>
+            </div>
+            <div class="clip-card clip-card--diagonal" data-clip>
+                <p class="clip-card-title">Diagonal Wipe</p>
+                <p class="clip-card-desc">Left to right polygon reveal.</p>
+                <p class="clip-card-code">clip-path: polygon(0 0, 0&rarr;100% 0, ...)</p>
+            </div>
+            <div class="clip-card clip-card--diamond" data-clip>
+                <p class="clip-card-title">Diamond Expand</p>
+                <p class="clip-card-desc">Four-point polygon from center.</p>
+                <p class="clip-card-code">clip-path: polygon(50% 50% &rarr; edges)</p>
+            </div>
+        </div>
+        <p class="technique-note technique-note--dark">Looks 8/10 difficulty. Actually 2/10.</p>
+    </section>
+
+    <!-- ============================================================
+         3. STACKING CARDS
+    ============================================================ -->
+    <div class="section-divider"></div>
+    <section class="stacking-section">
+        <div class="stacking-header">
+            <p class="section-label section-label--dark">Technique 02 / Stacking Cards</p>
+            <h2 class="stacking-heading">Position sticky. Incrementing top. That is the entire trick.</h2>
+        </div>
+        <div class="stacking-wrapper" id="stackingWrapper">
+            <div class="stack-card">
+                <p class="stack-card-number">01</p>
+                <h3 class="stack-card-title">The First Card Sticks</h3>
+                <p class="stack-card-body">This card has <code>position: sticky; top: 21px</code>. It pins to the viewport and stays there while you scroll past it. The next card slides over it.</p>
+            </div>
+            <div class="stack-card">
+                <p class="stack-card-number">02</p>
+                <h3 class="stack-card-title">The Second Covers It</h3>
+                <p class="stack-card-body">This card has <code>top: 42px</code>. It sticks 21px lower than the first, so it naturally layers on top. The stacking is emergent from CSS, not coded.</p>
+            </div>
+            <div class="stack-card">
+                <p class="stack-card-number">03</p>
+                <h3 class="stack-card-title">Each One Stacks</h3>
+                <p class="stack-card-body">This card has <code>top: 63px</code>. Zero JavaScript needed for the base effect. The browser does all the work. You just increment the <code>top</code> value.</p>
+            </div>
+            <div class="stack-card">
+                <p class="stack-card-number">04</p>
+                <h3 class="stack-card-title">Simple Depth</h3>
+                <p class="stack-card-body">Four cards, four <code>top</code> values, zero complexity. The optional JS enhancement scales down buried cards as new ones cover them.</p>
+            </div>
+        </div>
+        <div class="stacking-spacer"></div>
+    </section>
+
+    <!-- ============================================================
+         4. HORIZONTAL SCROLL
+    ============================================================ -->
+    <section class="horizontal-section" id="horizontalSection">
+        <div class="horizontal-sticky">
+            <div class="horizontal-header">
+                <p class="section-label section-label--light">Technique 03 / Horizontal Scroll</p>
+                <h2 class="horizontal-heading">Vertical scroll in. Horizontal motion out.</h2>
+            </div>
+            <div class="horizontal-track" id="horizontalTrack">
+                <div class="h-card">
+                    <p class="h-card-number">01</p>
+                    <h3 class="h-card-title">The Tall Wrapper</h3>
+                    <p class="h-card-desc">The outer section is 350vh tall. This creates vertical scroll runway. You are scrolling through empty space right now.</p>
+                </div>
+                <div class="h-card">
+                    <p class="h-card-number">02</p>
+                    <h3 class="h-card-title">The Sticky Container</h3>
+                    <p class="h-card-desc">Inside the tall wrapper, a sticky container locks to the viewport at 100vh. It never moves vertically. It just sits there.</p>
+                </div>
+                <div class="h-card">
+                    <p class="h-card-number">03</p>
+                    <h3 class="h-card-title">The Transform</h3>
+                    <p class="h-card-desc">JavaScript reads how far you have scrolled into the wrapper. It multiplies that into a translateX value. Vertical scroll becomes horizontal motion.</p>
+                </div>
+                <div class="h-card">
+                    <p class="h-card-number">04</p>
+                    <h3 class="h-card-title">The Math</h3>
+                    <p class="h-card-desc">progress = scrollDistance / maxScroll. translateX = progress * trackWidth. That is the entire algorithm. Two lines of arithmetic.</p>
+                </div>
+                <div class="h-card">
+                    <p class="h-card-number">05</p>
+                    <h3 class="h-card-title">The Illusion</h3>
+                    <p class="h-card-desc">Your scroll wheel is still doing vertical scroll. The browser is still scrolling down. The sticky container masks that. You only see horizontal motion.</p>
+                </div>
+                <div class="h-card">
+                    <p class="h-card-number">06</p>
+                    <h3 class="h-card-title">The Result</h3>
+                    <p class="h-card-desc">Linear, Apple, Locomotive - they all use this exact pattern. Three CSS properties and eight lines of JS. Looks 8/10. Actually 3/10.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         5. SVG LINE DRAWING
+    ============================================================ -->
+    <div class="section-divider"></div>
+    <section class="svg-draw-section" id="svgDrawSection">
+        <div class="svg-draw-sticky">
+            <p class="section-label section-label--dark">Technique 04 / Scroll-Driven SVG Drawing</p>
+            <h2 class="svg-draw-heading">The path draws itself as you scroll</h2>
+            <svg class="draw-svg" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet">
+                <path class="draw-path-ghost"
+                    d="M 0,100 C 50,20 100,180 175,100 C 250,20 300,180 350,100 C 400,20 450,180 525,100 C 600,20 650,180 700,100"/>
+                <path class="draw-path" id="drawPath"
+                    d="M 0,100 C 50,20 100,180 175,100 C 250,20 300,180 350,100 C 400,20 450,180 525,100 C 600,20 650,180 700,100"/>
+            </svg>
+            <p class="svg-draw-progress" id="svgProgress">0% drawn</p>
+            <p class="technique-note technique-note--dark">stroke-dasharray + stroke-dashoffset mapped to scroll. 3 concepts, 6 lines of JS.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         6. MIX-BLEND-MODE
+    ============================================================ -->
+    <section class="blend-section" id="blendSection">
+        <div class="blend-half blend-half--dark"></div>
+        <div class="blend-half blend-half--light"></div>
+        <h2 class="blend-text">CONTRAST</h2>
+        <div class="blend-circle" id="blendCircle"></div>
+        <p class="blend-note">
+            <span class="technique-note technique-note--dark">mix-blend-mode: difference. One CSS property. Looks 8/10. Actually 1/10.</span>
+        </p>
+    </section>
+
+    <!-- ============================================================
+         7. 3D DEPTH PLANES
+    ============================================================ -->
+    <section class="depth-section">
+        <div class="depth-layer depth-layer--back">DEPTH</div>
+        <div class="depth-layer depth-layer--mid">LAYERS</div>
+        <div class="depth-layer depth-layer--front">
+            <p class="section-label section-label--light">Technique 06 / CSS 3D Parallax</p>
+            <h2 class="depth-front-heading">Real perspective. Zero JavaScript.</h2>
+            <p class="depth-front-body">The words behind this text are at different translateZ depths. The browser's perspective projection makes them scroll at genuinely different speeds. No scroll listeners. No parallax math. Pure CSS.</p>
+        </div>
+        <div class="depth-content"></div>
+    </section>
+
+    <!-- ============================================================
+         8. SVG DISTORTION
+    ============================================================ -->
+    <section class="distort-section">
+        <p class="section-label section-label--light">Technique 07 / SVG Displacement</p>
+        <h2 class="distort-text" id="distortText">HOVER THIS</h2>
+        <p class="distort-sub">feTurbulence generates noise. feDisplacementMap pushes pixels. CSS applies it with filter: url(#id). Ten lines of SVG. Looks like GPU shaders.</p>
+        <p class="technique-note technique-note--light" style="margin-top: clamp(1.5rem, 1rem + 1vw, 2.5rem);">Looks 10/10 difficulty. Actually 3/10.</p>
+    </section>
+
+    <!-- ============================================================
+         9. MULTI-STEP CHOREOGRAPHY
+    ============================================================ -->
+    <div class="section-divider"></div>
+    <section class="choreo-section" id="choreoSection">
+        <p class="section-label section-label--dark">Technique 08 / Multi-Step Choreography</p>
+        <div class="choreo-stage" id="choreoStage">
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+            <div class="choreo-piece"></div>
+        </div>
+        <h2 class="choreo-heading">Nine pieces. One keyframe. Staggered delays.</h2>
+        <p class="choreo-body">Every piece shares the same @keyframes animation. CSS custom properties (--ex, --ey) give each one a unique landing position. animation-delay staggers the entrance. The complexity is in the choreography planning, not the code.</p>
+        <p class="technique-note technique-note--dark">Looks 10/10 difficulty. Actually 5/10.</p>
+    </section>
+
+    <!-- ============================================================
+         CLOSING
+    ============================================================ -->
+    <div class="section-divider"></div>
+    <section class="closing">
+        <h2 class="closing-heading">The iceberg pattern</h2>
+        <p class="closing-body">
+            Every technique on this page follows the same formula: get a
+            <span class="closing-accent">normalized value</span> (scroll position, cursor position, time),
+            <span class="closing-accent">multiply</span> it into a CSS property, and let the
+            <span class="closing-accent">browser composite</span>. The gap between a basic site and an
+            Apple product page is not code complexity. It is asset quality, easing curves, layering simple
+            effects, and polish.
+        </p>
+    </section>
+
+    <script>
+        // ===============================================================
+        // CURSOR
+        // ===============================================================
+        var cursorDot = document.getElementById('cursorDot');
+        var cursorRing = document.getElementById('cursorRing');
+        var mouseX = 0, mouseY = 0, dotX = 0, dotY = 0, ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+
+        function animateCursor() {
+            dotX += (mouseX - dotX) * 0.7;
+            dotY += (mouseY - dotY) * 0.7;
+            cursorDot.style.left = dotX + 'px';
+            cursorDot.style.top = dotY + 'px';
+            ringX += (mouseX - ringX) * 0.14;
+            ringY += (mouseY - ringY) * 0.14;
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top = ringY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        document.addEventListener('mouseover', function(e) {
+            if (e.target.closest('a, button, [data-hover]')) {
+                cursorDot.classList.add('hovering');
+                cursorRing.classList.add('hovering');
+            }
+        });
+        document.addEventListener('mouseout', function(e) {
+            if (e.target.closest('a, button, [data-hover]')) {
+                cursorDot.classList.remove('hovering');
+                cursorRing.classList.remove('hovering');
+            }
+        });
+
+        // ===============================================================
+        // SCROLL PROGRESS (JS fallback for browsers without animation-timeline)
+        // ===============================================================
+        var scrollBar = document.getElementById('scrollProgress');
+        if (!CSS.supports('animation-timeline', 'scroll()')) {
+            window.addEventListener('scroll', function() {
+                var progress = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+                scrollBar.style.transform = 'scaleX(' + progress + ')';
+            });
+        }
+
+        // ===============================================================
+        // GENERATIVE FLOW FIELD (Hero Canvas)
+        // ===============================================================
+        var heroCanvas = document.getElementById('heroCanvas');
+        var hCtx = heroCanvas.getContext('2d');
+
+        function resizeHeroCanvas() {
+            heroCanvas.width = window.innerWidth;
+            heroCanvas.height = window.innerHeight;
+            drawFlowField();
+        }
+
+        var seed = Math.random() * 1000;
+
+        function drawFlowField() {
+            hCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+
+            // Layer 1: warm bronze lines
+            hCtx.strokeStyle = 'rgba(122, 92, 56, 0.08)';
+            hCtx.lineWidth = 1;
+            for (var i = 0; i < 1500; i++) {
+                var x = Math.random() * heroCanvas.width;
+                var y = Math.random() * heroCanvas.height;
+                hCtx.beginPath();
+                hCtx.moveTo(x, y);
+                for (var step = 0; step < 40; step++) {
+                    var angle = Math.sin(x * 0.004 + seed) * Math.cos(y * 0.004 + seed) * Math.PI * 4;
+                    x += Math.cos(angle) * 2;
+                    y += Math.sin(angle) * 2;
+                    hCtx.lineTo(x, y);
+                    if (x < 0 || x > heroCanvas.width || y < 0 || y > heroCanvas.height) break;
+                }
+                hCtx.stroke();
+            }
+
+            // Layer 2: lighter gold
+            hCtx.strokeStyle = 'rgba(196, 149, 106, 0.05)';
+            for (var j = 0; j < 800; j++) {
+                var x2 = Math.random() * heroCanvas.width;
+                var y2 = Math.random() * heroCanvas.height;
+                hCtx.beginPath();
+                hCtx.moveTo(x2, y2);
+                for (var s2 = 0; s2 < 30; s2++) {
+                    var a2 = Math.cos(x2 * 0.003 + seed + 7) * Math.sin(y2 * 0.003 + seed + 7) * Math.PI * 3;
+                    x2 += Math.cos(a2) * 3;
+                    y2 += Math.sin(a2) * 3;
+                    hCtx.lineTo(x2, y2);
+                    if (x2 < 0 || x2 > heroCanvas.width || y2 < 0 || y2 > heroCanvas.height) break;
+                }
+                hCtx.stroke();
+            }
+        }
+
+        resizeHeroCanvas();
+        window.addEventListener('resize', resizeHeroCanvas);
+
+        // ===============================================================
+        // CLIP-PATH REVEALS
+        // ===============================================================
+        var clipCards = document.querySelectorAll('[data-clip]');
+        var clipObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, { threshold: 0.3, rootMargin: '0px 0px -7% 0px' });
+        clipCards.forEach(function(el) { clipObserver.observe(el); });
+
+        // ===============================================================
+        // STACKING CARDS — scale down buried cards
+        // ===============================================================
+        var stackCards = document.querySelectorAll('.stack-card');
+
+        window.addEventListener('scroll', function() {
+            stackCards.forEach(function(card, i) {
+                var nextCard = stackCards[i + 1];
+                if (nextCard) {
+                    var rect = card.getBoundingClientRect();
+                    var nextRect = nextCard.getBoundingClientRect();
+                    var overlap = Math.max(0, Math.min(1, 1 - (nextRect.top - rect.top) / rect.height));
+                    card.style.transform = 'scale(' + (1 - overlap * 0.04) + ')';
+                    card.style.filter = 'brightness(' + (1 - overlap * 0.15) + ')';
+                }
+            });
+        });
+
+        // ===============================================================
+        // HORIZONTAL SCROLL
+        // ===============================================================
+        var hSection = document.getElementById('horizontalSection');
+        var hTrack = document.getElementById('horizontalTrack');
+
+        window.addEventListener('scroll', function() {
+            var rect = hSection.getBoundingClientRect();
+            var scrollDist = -rect.top;
+            var maxScroll = hSection.offsetHeight - window.innerHeight;
+            var progress = Math.max(0, Math.min(1, scrollDist / maxScroll));
+            var maxTranslate = hTrack.scrollWidth - window.innerWidth;
+            hTrack.style.transform = 'translateX(' + (-progress * maxTranslate) + 'px)';
+        });
+
+        // ===============================================================
+        // SVG LINE DRAWING
+        // ===============================================================
+        var drawPath = document.getElementById('drawPath');
+        var svgSection = document.getElementById('svgDrawSection');
+        var svgLabel = document.getElementById('svgProgress');
+        var pathLength = drawPath.getTotalLength();
+
+        drawPath.style.strokeDasharray = pathLength;
+        drawPath.style.strokeDashoffset = pathLength;
+
+        window.addEventListener('scroll', function() {
+            var rect = svgSection.getBoundingClientRect();
+            var scrollDist = -rect.top;
+            var maxScroll = svgSection.offsetHeight - window.innerHeight;
+            var progress = Math.max(0, Math.min(1, scrollDist / maxScroll));
+            drawPath.style.strokeDashoffset = pathLength * (1 - progress);
+            svgLabel.textContent = Math.round(progress * 100) + '% drawn';
+        });
+
+        // ===============================================================
+        // BLEND MODE — Cursor-following exclusion circle
+        // ===============================================================
+        var blendSection = document.getElementById('blendSection');
+        var blendCircle = document.getElementById('blendCircle');
+
+        blendSection.addEventListener('mousemove', function(e) {
+            var rect = blendSection.getBoundingClientRect();
+            blendCircle.style.left = (e.clientX - rect.left) + 'px';
+            blendCircle.style.top = (e.clientY - rect.top) + 'px';
+        });
+
+        // ===============================================================
+        // CHOREOGRAPHY — trigger on scroll
+        // ===============================================================
+        var choreoStage = document.getElementById('choreoSection');
+        var choreoPieces = document.querySelectorAll('.choreo-piece');
+
+        var choreoObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    choreoPieces.forEach(function(piece) {
+                        piece.classList.add('animate');
+                    });
+                    // Add settled pulse after assembly completes
+                    setTimeout(function() {
+                        choreoPieces.forEach(function(piece) {
+                            piece.classList.add('settled');
+                        });
+                    }, 4200);
+                    choreoObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        choreoObserver.observe(choreoStage);
+    </script>
+</body>
+</html>

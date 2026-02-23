@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Techniques Masterclass - AG Arc Garde</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   AG DESIGN TOKENS
+   ══════════════════════════════════════════ */
+:root {
+  --void: #F7F3EE;
+  --void-warm: #F0EBE4;
+  --void-dark: #171513;
+  --accent: #7A5C38;
+  --accent-bright: #5C4229;
+  --accent-glow: rgba(92, 66, 41, 0.25);
+  --warm-gold: #C4956A;
+  --bronze-light: #D4A574;
+  --text-primary: rgba(23, 21, 19, 0.92);
+  --text-secondary: rgba(23, 21, 19, 0.58);
+  --text-muted: rgba(23, 21, 19, 0.38);
+
+  /* Deep Dark Mode Elevation System */
+  --surface-0: #0a0a0a;
+  --surface-1: #141414;
+  --surface-2: #1a1a1a;
+  --surface-3: #222222;
+  --ui-border: rgba(255, 255, 255, 0.06);
+  --ui-border-hover: rgba(255, 255, 255, 0.14);
+  --ui-text-primary: rgba(255, 255, 255, 0.92);
+  --ui-text-secondary: rgba(255, 255, 255, 0.6);
+  --ui-text-tertiary: rgba(255, 255, 255, 0.35);
+  --ui-text-muted: rgba(255, 255, 255, 0.2);
+
+  /* Status */
+  --status-green: #34d399;
+  --status-blue: #60a5fa;
+  --status-amber: #fbbf24;
+  --status-purple: #a78bfa;
+
+  /* AG Timing */
+  --ease-arc: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-enterprise: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ══════════════════════════════════════════
+   RESET
+   ══════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+body {
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--surface-0);
+  color: var(--ui-text-primary);
+  overflow-x: hidden;
+  cursor: none;
+}
+a { text-decoration: none; color: inherit; cursor: none; }
+button { cursor: none; border: none; background: none; font: inherit; }
+ul, ol { list-style: none; }
+
+/* ══════════════════════════════════════════
+   CURSOR
+   ══════════════════════════════════════════ */
+.cursor-glow {
+  position: fixed; width: 350px; height: 350px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none; z-index: 9999; transform: translate(-50%, -50%);
+  opacity: 0.35; mix-blend-mode: screen;
+}
+.cursor-dot {
+  position: fixed; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--warm-gold); pointer-events: none; z-index: 10001;
+  transform: translate(-50%, -50%);
+}
+.cursor-ring {
+  position: fixed; width: 42px; height: 42px; border-radius: 50%;
+  border: 1.5px solid var(--warm-gold); pointer-events: none; z-index: 10000;
+  transform: translate(-50%, -50%); opacity: 0.5;
+  transition: width 0.3s var(--ease-arc), height 0.3s var(--ease-arc), opacity 0.3s;
+}
+.cursor-ring.hovering { width: 63px; height: 63px; opacity: 0.8; }
+
+/* ══════════════════════════════════════════
+   NAV — SLIDING TAB INDICATOR
+   ══════════════════════════════════════════ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 14px 42px; display: flex; justify-content: center; align-items: center; gap: 42px;
+  background: rgba(10, 10, 10, 0); backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+  border-bottom: 1px solid transparent;
+  transition: background 0.7s var(--ease-arc), backdrop-filter 0.7s, border-color 0.7s;
+}
+.nav.scrolled {
+  background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(21px); -webkit-backdrop-filter: blur(21px);
+  border-bottom: 1px solid var(--ui-border);
+}
+.nav-brand {
+  font-family: 'Cinzel', serif; font-size: 1.2rem; letter-spacing: 0.28em;
+  color: var(--warm-gold); font-weight: 500;
+}
+.nav-links {
+  display: flex; align-items: center; gap: 0; position: relative;
+}
+.nav-link {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.06em;
+  color: var(--ui-text-tertiary); padding: 7px 16px; border-radius: 7px;
+  transition: color 0.3s;
+  text-transform: uppercase;
+}
+.nav-link:hover { color: var(--ui-text-primary); }
+.nav-indicator {
+  position: absolute; height: 100%; background: rgba(196, 149, 106, 0.1);
+  border-radius: 7px; border: 1px solid rgba(196, 149, 106, 0.15);
+  transition: transform 0.3s var(--ease-enterprise), width 0.3s var(--ease-enterprise);
+  pointer-events: none; top: 0; left: 0;
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════
+   SECTIONS
+   ══════════════════════════════════════════ */
+.section {
+  padding: 120px 42px; max-width: 1400px; margin: 0 auto; position: relative;
+}
+.section-full {
+  padding: 120px 42px; max-width: 100%; position: relative;
+}
+.section-inner { max-width: 1400px; margin: 0 auto; }
+
+.section-label {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--warm-gold); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 14px;
+}
+.section-label::before { content: ''; width: 42px; height: 1px; background: var(--warm-gold); }
+.section-title {
+  font-family: 'Cinzel', serif; font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400; letter-spacing: 0.06em; line-height: 1.2; margin-bottom: 21px;
+}
+.section-subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.3rem); color: var(--ui-text-secondary);
+  max-width: 600px; line-height: 1.7; font-weight: 300;
+}
+.technique-tag {
+  display: inline-flex; align-items: center; gap: 12px; margin-top: 21px;
+  padding: 8px 16px; background: rgba(196, 149, 106, 0.06);
+  border: 1px solid rgba(196, 149, 106, 0.12); border-radius: 7px;
+}
+.technique-tag span:first-child {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--warm-gold);
+}
+.technique-tag span:last-child {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted);
+}
+
+/* Dividers */
+.divider {
+  width: 100%; max-width: 1400px; margin: 0 auto;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--warm-gold), transparent);
+  opacity: 0.15;
+}
+
+/* Gradient fade between sections */
+.gradient-fade {
+  height: 120px;
+  background: linear-gradient(to bottom, var(--from-color), var(--to-color));
+}
+
+/* Reveal */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.9s var(--ease-entrance), transform 0.9s var(--ease-entrance);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ══════════════════════════════════════════
+   1. AURORA BACKGROUND HERO
+   ══════════════════════════════════════════ */
+.hero-aurora {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  padding: 120px 42px; position: relative; overflow: hidden;
+}
+.aurora-orb {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  filter: blur(80px); opacity: 0.5;
+}
+.aurora-1 {
+  width: 600px; height: 600px; top: -10%; left: -5%;
+  background: var(--accent); animation: aurora-drift-1 21s ease-in-out infinite, hue-cycle 14s linear infinite;
+}
+.aurora-2 {
+  width: 500px; height: 500px; bottom: -10%; right: -10%;
+  background: #3b2a1a; animation: aurora-drift-2 14s ease-in-out infinite, hue-cycle 21s linear infinite;
+}
+.aurora-3 {
+  width: 400px; height: 400px; top: 30%; left: 40%;
+  background: #2a1a0a; animation: aurora-drift-3 9s ease-in-out infinite, hue-cycle 7s linear infinite;
+}
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(60px, -40px); }
+  66% { transform: translate(-30px, 50px); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-50px, 30px); }
+  66% { transform: translate(40px, -60px); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(70px, 40px); }
+}
+@keyframes hue-cycle { to { filter: blur(80px) hue-rotate(360deg); } }
+
+/* Noise grain overlay */
+.grain-overlay {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+.hero-overline {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.4em;
+  text-transform: uppercase; color: var(--warm-gold); margin-bottom: 28px;
+  position: relative; z-index: 2;
+  opacity: 0; animation: fadeInUp 0.9s var(--ease-entrance) 0.3s forwards;
+}
+.hero-title {
+  font-family: 'Cinzel', serif; font-size: clamp(2.4rem, 6vw, 5rem);
+  font-weight: 400; letter-spacing: 0.08em; line-height: 1.15;
+  margin-bottom: 28px; position: relative; z-index: 2; text-wrap: balance;
+}
+.hero-title span {
+  display: inline-block; opacity: 0; transform: translateY(40px);
+  animation: fadeInUp 0.7s var(--ease-entrance) forwards;
+}
+
+/* Shimmer text */
+.shimmer-text {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.6) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.6) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4.2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.hero-desc {
+  font-size: clamp(1.1rem, 2vw, 1.35rem); color: var(--ui-text-secondary);
+  max-width: 620px; line-height: 1.7; font-weight: 300;
+  margin-bottom: 42px; position: relative; z-index: 2;
+  opacity: 0; animation: fadeInUp 0.9s var(--ease-entrance) 1.2s forwards;
+}
+
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+/* ══════════════════════════════════════════
+   2. GLOW BORDER CARDS (LINEAR STYLE)
+   ══════════════════════════════════════════ */
+.glow-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 21px; margin-top: 63px;
+}
+.glow-card {
+  position: relative; background: var(--surface-1); border-radius: 14px;
+  padding: 32px; border: 1px solid var(--ui-border);
+  transition: border-color 0.6s var(--ease-enterprise), transform 0.6s var(--ease-enterprise);
+  overflow: hidden;
+}
+.glow-card:hover { border-color: transparent; transform: translateY(-3px); }
+
+/* The rotating conic gradient border */
+.glow-card::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
+  background: conic-gradient(from var(--glow-angle), transparent 40%, var(--warm-gold) 50%, transparent 60%);
+  animation: glow-spin 4.2s linear infinite;
+  opacity: 0; transition: opacity 0.6s;
+}
+.glow-card:hover::before { opacity: 1; }
+
+/* Mask to show only as border */
+.glow-card::after {
+  content: ''; position: absolute; inset: 1px; border-radius: 13px;
+  background: var(--surface-1); z-index: -1;
+}
+
+@keyframes glow-spin { to { --glow-angle: 360deg; } }
+
+.glow-card-icon {
+  width: 42px; height: 42px; border-radius: 10px; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 500;
+}
+.glow-card-title {
+  font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 0.04em;
+  margin-bottom: 9px;
+}
+.glow-card-desc {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--ui-text-tertiary); line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   3. SPOTLIGHT CARD GRID
+   ══════════════════════════════════════════ */
+.spotlight-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px; margin-top: 63px; position: relative;
+}
+.spotlight-card {
+  position: relative; background: var(--surface-1); border-radius: 14px;
+  padding: 32px; border: 1px solid var(--ui-border);
+  transition: border-color 0.3s;
+  overflow: hidden;
+}
+.spotlight-card:hover { border-color: var(--ui-border-hover); }
+
+.spotlight-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  opacity: 0; transition: opacity 0.6s;
+  background: radial-gradient(
+    300px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(196, 149, 106, 0.08), transparent 60%
+  );
+  border-radius: inherit;
+}
+.spotlight-card:hover .spotlight-overlay { opacity: 1; }
+
+.spotlight-card-number {
+  font-family: 'JetBrains Mono', monospace; font-size: 2.4rem; font-weight: 500;
+  color: var(--warm-gold); line-height: 1; margin-bottom: 12px;
+}
+.spotlight-card-title {
+  font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 0.04em; margin-bottom: 7px;
+}
+.spotlight-card-desc {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--ui-text-tertiary); line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   4. INFINITE MARQUEE LOGO WALL
+   ══════════════════════════════════════════ */
+.marquee-section {
+  padding: 63px 0; overflow: hidden; position: relative;
+  border-top: 1px solid var(--ui-border); border-bottom: 1px solid var(--ui-border);
+}
+.marquee-label {
+  text-align: center; margin-bottom: 28px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--ui-text-muted); letter-spacing: 0.12em; text-transform: uppercase;
+}
+.marquee-track {
+  display: flex; width: max-content;
+  animation: marquee-scroll 42s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+.marquee-item {
+  flex-shrink: 0; padding: 0 42px;
+  font-family: 'Cinzel', serif; font-size: 1.2rem; letter-spacing: 0.08em;
+  color: var(--ui-text-muted); white-space: nowrap;
+  transition: color 0.3s;
+}
+.marquee-item:hover { color: var(--ui-text-primary); }
+
+.marquee-fade {
+  position: absolute; top: 0; bottom: 0; width: 120px; z-index: 2; pointer-events: none;
+}
+.marquee-fade-left {
+  left: 0; background: linear-gradient(to right, var(--surface-0), transparent);
+}
+.marquee-fade-right {
+  right: 0; background: linear-gradient(to left, var(--surface-0), transparent);
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ══════════════════════════════════════════
+   5. METRIC TESTIMONIALS
+   ══════════════════════════════════════════ */
+.testimonial-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 21px; margin-top: 63px;
+}
+.testimonial-card {
+  background: var(--surface-1); border: 1px solid var(--ui-border);
+  border-radius: 14px; padding: 32px;
+  transition: transform 0.6s var(--ease-enterprise), border-color 0.3s;
+}
+.testimonial-card:hover { transform: translateY(-3px); border-color: var(--ui-border-hover); }
+
+.testimonial-metric {
+  font-family: 'JetBrains Mono', monospace; font-size: 2.4rem; font-weight: 500;
+  line-height: 1; margin-bottom: 14px;
+  background: linear-gradient(135deg, var(--warm-gold), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.testimonial-quote {
+  font-size: 1.05rem; color: var(--ui-text-secondary); line-height: 1.7;
+  font-weight: 300; font-style: italic; margin-bottom: 21px;
+  text-wrap: pretty;
+}
+.testimonial-author {
+  display: flex; align-items: center; gap: 12px;
+}
+.testimonial-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--warm-gold));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: white; font-weight: 500;
+}
+.testimonial-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--ui-text-primary);
+}
+.testimonial-role {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted);
+}
+
+/* ══════════════════════════════════════════
+   6. PRICING — SLIDING PILL TOGGLE
+   ══════════════════════════════════════════ */
+.pricing-toggle-wrap {
+  display: flex; justify-content: center; margin-bottom: 42px;
+}
+.pricing-toggle {
+  display: flex; position: relative;
+  background: var(--surface-2); border-radius: 99px; padding: 4px;
+  border: 1px solid var(--ui-border);
+}
+.pricing-toggle-pill {
+  position: absolute; top: 4px; left: 4px; height: calc(100% - 8px);
+  width: calc(50% - 4px); border-radius: 99px;
+  background: var(--accent); transition: transform 0.3s var(--ease-enterprise);
+}
+.pricing-toggle.annual .pricing-toggle-pill { transform: translateX(100%); }
+
+.pricing-toggle-btn {
+  position: relative; z-index: 2; padding: 9px 28px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--ui-text-tertiary); letter-spacing: 0.06em;
+  transition: color 0.3s;
+}
+.pricing-toggle-btn.active { color: white; }
+
+.pricing-save {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--status-green); margin-left: 14px;
+  opacity: 0; transform: scale(0.8);
+  transition: opacity 0.3s, transform 0.3s var(--ease-enterprise);
+}
+.pricing-save.show { opacity: 1; transform: scale(1); }
+
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 21px; margin-top: 14px; align-items: center;
+}
+
+.pricing-card {
+  background: var(--surface-1); border: 1px solid var(--ui-border);
+  border-radius: 14px; padding: 32px;
+  transition: transform 0.6s var(--ease-enterprise), border-color 0.3s, box-shadow 0.6s;
+  position: relative;
+}
+.pricing-card:hover { border-color: var(--ui-border-hover); }
+
+.pricing-card.recommended {
+  transform: scale(1.03); border-color: rgba(196, 149, 106, 0.3);
+  box-shadow: 0 0 42px rgba(196, 149, 106, 0.08);
+}
+.pricing-card.recommended:hover { transform: scale(1.05); }
+
+.pricing-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: white; padding: 4px 16px;
+  border-radius: 99px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pricing-name {
+  font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 0.06em;
+  margin-bottom: 7px;
+}
+.pricing-price {
+  font-family: 'JetBrains Mono', monospace; font-size: 2.4rem; font-weight: 500;
+  color: var(--warm-gold); line-height: 1; margin-bottom: 4px;
+}
+.pricing-price-period {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--ui-text-muted); margin-bottom: 21px;
+}
+.pricing-features { margin-bottom: 28px; }
+.pricing-feature {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--ui-text-tertiary); padding: 7px 0;
+  border-bottom: 1px solid var(--ui-border);
+  display: flex; align-items: center; gap: 9px;
+}
+.pricing-feature::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--warm-gold); flex-shrink: 0;
+}
+.pricing-cta {
+  display: block; width: 100%; padding: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  letter-spacing: 0.08em; text-transform: uppercase; text-align: center;
+  border: 1px solid var(--ui-border); border-radius: 9px;
+  color: var(--ui-text-secondary);
+  transition: all 0.3s var(--ease-arc);
+}
+.pricing-cta:hover {
+  border-color: var(--warm-gold); color: var(--warm-gold);
+}
+.pricing-card.recommended .pricing-cta {
+  background: var(--accent); border-color: var(--accent); color: white;
+}
+.pricing-card.recommended .pricing-cta:hover {
+  background: var(--accent-bright);
+}
+
+/* ══════════════════════════════════════════
+   7. ACCORDION (GRID-ROWS TECHNIQUE)
+   ══════════════════════════════════════════ */
+.accordion-list { margin-top: 63px; max-width: 800px; }
+.accordion-item {
+  border-bottom: 1px solid var(--ui-border);
+}
+.accordion-trigger {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 21px 0; text-align: left;
+  font-family: 'Cinzel', serif; font-size: 1.05rem; letter-spacing: 0.04em;
+  color: var(--ui-text-primary);
+  transition: color 0.3s;
+}
+.accordion-trigger:hover { color: var(--warm-gold); }
+.accordion-icon {
+  font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;
+  color: var(--warm-gold); transition: transform 0.3s var(--ease-enterprise);
+}
+.accordion-item.open .accordion-icon { transform: rotate(45deg); }
+.accordion-content {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--ease-enterprise);
+}
+.accordion-item.open .accordion-content { grid-template-rows: 1fr; }
+.accordion-inner {
+  overflow: hidden;
+}
+.accordion-text {
+  padding: 0 0 21px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; color: var(--ui-text-tertiary); line-height: 1.7;
+}
+
+/* ══════════════════════════════════════════
+   8. OVERLAPPING SECTION
+   ══════════════════════════════════════════ */
+.overlap-section {
+  background: var(--surface-0); padding: 120px 42px 180px;
+}
+.overlap-card {
+  position: relative; z-index: 3; max-width: 900px; margin: 0 auto;
+  background: var(--surface-1); border: 1px solid var(--ui-border);
+  border-radius: 18px; padding: 48px; margin-bottom: -100px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 42px; align-items: center;
+}
+.overlap-target {
+  background: var(--surface-2); padding: 120px 42px 180px; position: relative;
+}
+.overlap-target .section-inner { padding-top: 80px; }
+
+.overlap-stat {
+  font-family: 'JetBrains Mono', monospace; font-size: 3.6rem; font-weight: 500;
+  color: var(--warm-gold); line-height: 1;
+}
+.overlap-stat-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--ui-text-muted); margin-top: 7px; letter-spacing: 0.06em;
+}
+.overlap-text h3 {
+  font-family: 'Cinzel', serif; font-size: 1.4rem; letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.overlap-text p {
+  font-size: 1.05rem; color: var(--ui-text-secondary); line-height: 1.7;
+  font-weight: 300;
+}
+
+/* ══════════════════════════════════════════
+   9. COMMAND PALETTE (CMD+K)
+   ══════════════════════════════════════════ */
+.cmd-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  z-index: 9998; display: none; opacity: 0;
+  transition: opacity 0.2s;
+}
+.cmd-overlay.open { display: flex; justify-content: center; align-items: flex-start; padding-top: 20vh; }
+.cmd-overlay.visible { opacity: 1; }
+
+.cmd-palette {
+  width: 90%; max-width: 560px; background: var(--surface-1);
+  border: 1px solid var(--ui-border); border-radius: 14px;
+  overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  transform: scale(0.95); transition: transform 0.2s var(--ease-enterprise);
+}
+.cmd-overlay.visible .cmd-palette { transform: scale(1); }
+
+.cmd-input-wrap {
+  display: flex; align-items: center; gap: 12px; padding: 16px 18px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.cmd-search-icon {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  color: var(--ui-text-muted);
+}
+.cmd-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  color: var(--ui-text-primary);
+}
+.cmd-input::placeholder { color: var(--ui-text-muted); }
+.cmd-shortcut {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); padding: 3px 7px;
+  background: var(--surface-2); border-radius: 4px;
+  border: 1px solid var(--ui-border);
+}
+
+.cmd-results { max-height: 300px; overflow-y: auto; padding: 8px; }
+.cmd-group-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 8px 10px 4px;
+}
+.cmd-result {
+  display: flex; align-items: center; gap: 12px; padding: 10px 10px;
+  border-radius: 8px; transition: background 0.15s;
+}
+.cmd-result:hover, .cmd-result.active { background: var(--surface-2); }
+.cmd-result-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--surface-3); border: 1px solid var(--ui-border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--warm-gold); flex-shrink: 0;
+}
+.cmd-result-text {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  color: var(--ui-text-secondary);
+}
+.cmd-result.active .cmd-result-text { color: var(--ui-text-primary); }
+.cmd-result-hint {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; color: var(--ui-text-muted);
+}
+
+.cmd-footer {
+  display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+  border-top: 1px solid var(--ui-border);
+}
+.cmd-footer-hint {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  color: var(--ui-text-muted); display: flex; align-items: center; gap: 6px;
+}
+.cmd-key {
+  padding: 2px 5px; background: var(--surface-2); border-radius: 3px;
+  border: 1px solid var(--ui-border); font-size: 0.5rem;
+}
+
+/* CMD+K hint badge */
+.cmdk-hint {
+  position: fixed; bottom: 28px; right: 28px; z-index: 100;
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 18px; background: var(--surface-1);
+  border: 1px solid var(--ui-border); border-radius: 9px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--ui-text-tertiary); box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  animation: fadeInUp 0.9s var(--ease-entrance) 2.1s both;
+}
+
+/* ══════════════════════════════════════════
+   10. SKEWED SECTION
+   ══════════════════════════════════════════ */
+.skew-section {
+  background: var(--surface-1); position: relative;
+  padding: 160px 42px 120px;
+  clip-path: polygon(0 60px, 100% 0, 100% calc(100% - 60px), 0 100%);
+}
+.skew-section .section-inner {
+  max-width: 1400px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 63px; align-items: center;
+}
+.skew-visual {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.skew-stat-card {
+  background: var(--surface-2); border: 1px solid var(--ui-border);
+  border-radius: 12px; padding: 21px; text-align: center;
+}
+.skew-stat-value {
+  font-family: 'JetBrains Mono', monospace; font-size: 1.8rem;
+  font-weight: 500; color: var(--warm-gold);
+}
+.skew-stat-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--ui-text-muted); margin-top: 4px; text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ══════════════════════════════════════════
+   GRADIENT TEXT (VERCEL STYLE)
+   ══════════════════════════════════════════ */
+.gradient-text {
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(196,149,106,0.7) 100%
+  );
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════════════════════════════════════
+   CTA + FOOTER
+   ══════════════════════════════════════════ */
+.cta-section {
+  text-align: center; padding: 120px 42px; max-width: 800px; margin: 0 auto;
+}
+.cta-title {
+  font-family: 'Cinzel', serif; font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400; letter-spacing: 0.06em; margin-bottom: 21px;
+}
+.cta-desc {
+  font-size: 1.2rem; color: var(--ui-text-secondary); font-weight: 300;
+  margin-bottom: 42px; line-height: 1.7;
+}
+.cta-btn {
+  display: inline-block; font-family: 'Cinzel', serif; font-size: 0.85rem;
+  letter-spacing: 0.2em; text-transform: uppercase; padding: 18px 42px;
+  border: 1px solid var(--warm-gold); color: var(--warm-gold);
+  position: relative; overflow: hidden; transition: color 0.6s var(--ease-arc);
+  width: fit-content;
+}
+.cta-btn::before {
+  content: ''; position: absolute; inset: 0; background: var(--warm-gold);
+  transform: translateX(-100%); transition: transform 0.6s var(--ease-arc); z-index: -1;
+}
+.cta-btn:hover { color: var(--surface-0); }
+.cta-btn:hover::before { transform: translateX(0); }
+
+.footer {
+  text-align: center; padding: 42px; border-top: 1px solid var(--ui-border);
+}
+.footer-brand {
+  font-family: 'Cinzel', serif; font-size: 0.8rem;
+  letter-spacing: 0.3em; color: var(--warm-gold); margin-bottom: 7px;
+}
+.footer-sub {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  color: var(--ui-text-muted); letter-spacing: 0.06em;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .pricing-card.recommended { transform: none; }
+  .pricing-card.recommended:hover { transform: translateY(-3px); }
+  .overlap-card { grid-template-columns: 1fr; }
+  .skew-section .section-inner { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+@media (max-width: 768px) {
+  .section, .section-full { padding: 80px 21px; }
+  .hero-aurora { padding: 80px 21px; }
+  .overlap-card { padding: 28px; margin-bottom: -60px; }
+  .overlap-target .section-inner { padding-top: 50px; }
+  .skew-section { padding: 120px 21px 80px; clip-path: polygon(0 30px, 100% 0, 100% calc(100% - 30px), 0 100%); }
+}
+@media (max-width: 480px) {
+  .hero-title { font-size: 2rem; }
+  .nav { padding: 14px 21px; }
+}
+
+/* Touch devices — hide cursor */
+@media (hover: none) {
+  .cursor-glow, .cursor-dot, .cursor-ring { display: none; }
+  body { cursor: auto; }
+  a, button { cursor: pointer; }
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor-glow"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- CMD+K Palette -->
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-palette">
+    <div class="cmd-input-wrap">
+      <span class="cmd-search-icon">/</span>
+      <input class="cmd-input" id="cmdInput" type="text" placeholder="Search techniques..." autocomplete="off">
+      <span class="cmd-shortcut">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmdResults">
+      <div class="cmd-group-label">Techniques</div>
+      <div class="cmd-result active" data-target="aurora"><div class="cmd-result-icon">01</div><div class="cmd-result-text">Aurora Background</div><div class="cmd-result-hint">Hero</div></div>
+      <div class="cmd-result" data-target="glow"><div class="cmd-result-icon">02</div><div class="cmd-result-text">Glow Border Cards</div><div class="cmd-result-hint">Linear</div></div>
+      <div class="cmd-result" data-target="spotlight"><div class="cmd-result-icon">03</div><div class="cmd-result-text">Spotlight Grid</div><div class="cmd-result-hint">Hover</div></div>
+      <div class="cmd-result" data-target="marquee"><div class="cmd-result-icon">04</div><div class="cmd-result-text">Marquee Logo Wall</div><div class="cmd-result-hint">Social</div></div>
+      <div class="cmd-result" data-target="testimonials"><div class="cmd-result-icon">05</div><div class="cmd-result-text">Metric Testimonials</div><div class="cmd-result-hint">Proof</div></div>
+      <div class="cmd-result" data-target="pricing"><div class="cmd-result-icon">06</div><div class="cmd-result-text">Pricing Toggle</div><div class="cmd-result-hint">Convert</div></div>
+      <div class="cmd-result" data-target="skew"><div class="cmd-result-icon">07</div><div class="cmd-result-text">Skewed Section</div><div class="cmd-result-hint">Layout</div></div>
+      <div class="cmd-result" data-target="overlap"><div class="cmd-result-icon">08</div><div class="cmd-result-text">Overlapping Section</div><div class="cmd-result-hint">Depth</div></div>
+      <div class="cmd-result" data-target="accordion"><div class="cmd-result-icon">09</div><div class="cmd-result-text">Grid Accordion</div><div class="cmd-result-hint">FAQ</div></div>
+    </div>
+    <div class="cmd-footer">
+      <div class="cmd-footer-hint"><span class="cmd-key">&uarr;</span><span class="cmd-key">&darr;</span> Navigate</div>
+      <div class="cmd-footer-hint"><span class="cmd-key">&crarr;</span> Go</div>
+      <div class="cmd-footer-hint"><span class="cmd-key">ESC</span> Close</div>
+    </div>
+  </div>
+</div>
+
+<!-- CMD+K hint -->
+<div class="cmdk-hint">
+  <span class="cmd-key">Ctrl</span>+<span class="cmd-key">K</span> to navigate
+</div>
+
+<!-- Nav with Sliding Tab Indicator -->
+<nav class="nav" id="mainNav">
+  <div class="nav-brand">ARC GARDE</div>
+  <div class="nav-links" id="navLinks">
+    <div class="nav-indicator" id="navIndicator"></div>
+    <a class="nav-link" href="#aurora">Aurora</a>
+    <a class="nav-link" href="#glow">Glow</a>
+    <a class="nav-link" href="#spotlight">Spotlight</a>
+    <a class="nav-link" href="#marquee">Marquee</a>
+    <a class="nav-link" href="#testimonials">Metrics</a>
+    <a class="nav-link" href="#pricing">Pricing</a>
+    <a class="nav-link" href="#skew">Skew</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     1. AURORA HERO + SHIMMER TEXT + GRAIN
+     ═══════════════════════════════════════ -->
+<section class="hero-aurora" id="aurora">
+  <div class="aurora-orb aurora-1"></div>
+  <div class="aurora-orb aurora-2"></div>
+  <div class="aurora-orb aurora-3"></div>
+  <div class="grain-overlay"></div>
+
+  <div class="hero-overline">SaaS Techniques Masterclass</div>
+  <h1 class="hero-title">
+    <span class="shimmer-text" style="animation-delay: 0.3s">Every</span>
+    <span class="shimmer-text" style="animation-delay: 0.5s">Technique</span>
+    <span class="shimmer-text" style="animation-delay: 0.7s">That</span>
+    <span class="shimmer-text" style="animation-delay: 0.9s">Matters</span>
+  </h1>
+  <p class="hero-desc">
+    The complete library of enterprise SaaS design patterns. Extracted from Linear, Stripe, Vercel, Notion, and the best of Saaspo. Every technique. One page.
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     2. GLOW BORDER CARDS
+     ═══════════════════════════════════════ -->
+<section class="section" id="glow">
+  <div class="reveal">
+    <div class="section-label">Pattern 01</div>
+    <h2 class="section-title gradient-text">Rotating Glow Borders</h2>
+    <p class="section-subtitle">A conic gradient rotates around the card edge on hover. The mask-composite technique shows it only as a 1px border. Linear's signature.</p>
+    <div class="technique-tag">
+      <span>conic-gradient + @property --angle + mask-composite</span>
+      <span>Looks 9/10 | Actually 3/10</span>
+    </div>
+  </div>
+
+  <div class="glow-grid reveal">
+    <div class="glow-card">
+      <div class="glow-card-icon" style="background: rgba(196,149,106,0.12); color: var(--warm-gold);">01</div>
+      <div class="glow-card-title">Intake Analysis</div>
+      <div class="glow-card-desc">49 questions processed. Client DNA extracted. Zero guesswork before a single line of code.</div>
+    </div>
+    <div class="glow-card">
+      <div class="glow-card-icon" style="background: rgba(96,165,250,0.12); color: var(--status-blue);">02</div>
+      <div class="glow-card-title">ICEL Research</div>
+      <div class="glow-card-desc">Competitor analysis, design psychology, pattern library. The 80/20 Feature Variation method.</div>
+    </div>
+    <div class="glow-card">
+      <div class="glow-card-icon" style="background: rgba(52,211,153,0.12); color: var(--status-green);">03</div>
+      <div class="glow-card-title">DVBL Construction</div>
+      <div class="glow-card-desc">Phase A creative build, Phase B hardening. Every pixel placed with intent.</div>
+    </div>
+    <div class="glow-card">
+      <div class="glow-card-icon" style="background: rgba(167,139,250,0.12); color: var(--status-purple);">04</div>
+      <div class="glow-card-title">IDWIP Validation</div>
+      <div class="glow-card-desc">4-system scan. DVAR, CURB, Responsive, SEO. Nothing ships without passing all gates.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     3. SPOTLIGHT GRID
+     ═══════════════════════════════════════ -->
+<section class="section" id="spotlight">
+  <div class="reveal">
+    <div class="section-label">Pattern 02</div>
+    <h2 class="section-title gradient-text">Mouse-Tracking Spotlight</h2>
+    <p class="section-subtitle">A radial gradient follows the cursor inside each card. The glow reveals itself only on hover. Used across dark-mode SaaS feature grids.</p>
+    <div class="technique-tag">
+      <span>radial-gradient at var(--x) var(--y) + JS mousemove</span>
+      <span>Looks 8/10 | Actually 2/10</span>
+    </div>
+  </div>
+
+  <div class="spotlight-grid reveal">
+    <div class="spotlight-card">
+      <div class="spotlight-overlay"></div>
+      <div class="spotlight-card-number">98.7%</div>
+      <div class="spotlight-card-title">Uptime SLA</div>
+      <div class="spotlight-card-desc">Every deployment monitored. Every anomaly caught. Your sites never sleep.</div>
+    </div>
+    <div class="spotlight-card">
+      <div class="spotlight-overlay"></div>
+      <div class="spotlight-card-number">&lt; 3s</div>
+      <div class="spotlight-card-title">Deploy Speed</div>
+      <div class="spotlight-card-desc">Branch, PR, merge. Vercel auto-deploys in under 3 seconds. Pipeline runs itself.</div>
+    </div>
+    <div class="spotlight-card">
+      <div class="spotlight-overlay"></div>
+      <div class="spotlight-card-number">4</div>
+      <div class="spotlight-card-title">Validation Systems</div>
+      <div class="spotlight-card-desc">DVAR, CURB, Responsive, SEO. Four independent systems agree before anything ships.</div>
+    </div>
+    <div class="spotlight-card">
+      <div class="spotlight-overlay"></div>
+      <div class="spotlight-card-number">12</div>
+      <div class="spotlight-card-title">Snapshot Gates</div>
+      <div class="spotlight-card-desc">History code folders capture frozen snapshots at every phase. Rollback to any moment.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     4. INFINITE MARQUEE
+     ═══════════════════════════════════════ -->
+<section class="marquee-section" id="marquee">
+  <div class="marquee-label">Techniques sourced from</div>
+  <div style="position: relative;">
+    <div class="marquee-fade marquee-fade-left"></div>
+    <div class="marquee-fade marquee-fade-right"></div>
+    <div class="marquee-track">
+      <span class="marquee-item">Linear</span>
+      <span class="marquee-item">Stripe</span>
+      <span class="marquee-item">Vercel</span>
+      <span class="marquee-item">Notion</span>
+      <span class="marquee-item">Figma</span>
+      <span class="marquee-item">Raycast</span>
+      <span class="marquee-item">Supabase</span>
+      <span class="marquee-item">Resend</span>
+      <span class="marquee-item">Clerk</span>
+      <span class="marquee-item">Framer</span>
+      <span class="marquee-item">Webflow</span>
+      <span class="marquee-item">Spline</span>
+      <span class="marquee-item">Attio</span>
+      <span class="marquee-item">Loops</span>
+      <span class="marquee-item">Pitch</span>
+      <span class="marquee-item">Dub</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item">Linear</span>
+      <span class="marquee-item">Stripe</span>
+      <span class="marquee-item">Vercel</span>
+      <span class="marquee-item">Notion</span>
+      <span class="marquee-item">Figma</span>
+      <span class="marquee-item">Raycast</span>
+      <span class="marquee-item">Supabase</span>
+      <span class="marquee-item">Resend</span>
+      <span class="marquee-item">Clerk</span>
+      <span class="marquee-item">Framer</span>
+      <span class="marquee-item">Webflow</span>
+      <span class="marquee-item">Spline</span>
+      <span class="marquee-item">Attio</span>
+      <span class="marquee-item">Loops</span>
+      <span class="marquee-item">Pitch</span>
+      <span class="marquee-item">Dub</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. METRIC TESTIMONIALS
+     ═══════════════════════════════════════ -->
+<section class="section" id="testimonials">
+  <div class="reveal">
+    <div class="section-label">Pattern 03</div>
+    <h2 class="section-title gradient-text">Metric-First Testimonials</h2>
+    <p class="section-subtitle">Lead with the number, not the person. The metric is the visual anchor. The quote provides context. The author provides credibility.</p>
+    <div class="technique-tag">
+      <span>gradient background-clip: text + masonry grid</span>
+      <span>Looks 7/10 | Actually 2/10</span>
+    </div>
+  </div>
+
+  <div class="testimonial-grid reveal">
+    <div class="testimonial-card">
+      <div class="testimonial-metric">40%</div>
+      <div class="testimonial-quote">"Build time cut by 40%. The intake process alone eliminated two rounds of revision we used to need on every single project."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">GL</div>
+        <div>
+          <div class="testimonial-name">Gus Lopez</div>
+          <div class="testimonial-role">Lead Hunter Media</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-metric">0</div>
+      <div class="testimonial-quote">"Zero revision cycles on the homepage. The WPCS pre-flight and ICEL research meant they nailed it on the first build. Never experienced that before."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">MR</div>
+        <div>
+          <div class="testimonial-name">Maria Rivera</div>
+          <div class="testimonial-role">Rivera's Kitchen</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-metric">98.7</div>
+      <div class="testimonial-quote">"Quality score of 98.7 across all validation systems. The automated checks catch things human eyes miss. Production-grade from day one."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">QM</div>
+        <div>
+          <div class="testimonial-name">Quinten M.</div>
+          <div class="testimonial-role">Arc Garde, Lead</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     6. PRICING WITH SLIDING PILL TOGGLE
+     ═══════════════════════════════════════ -->
+<section class="section" id="pricing">
+  <div class="reveal">
+    <div class="section-label">Pattern 04</div>
+    <h2 class="section-title gradient-text">Sliding Pill Pricing Toggle</h2>
+    <p class="section-subtitle">The pill physically slides between Monthly and Annual. Prices animate. A "Save" badge fades in. The recommended plan is visually elevated.</p>
+    <div class="technique-tag">
+      <span>::before translateX + scale(1.03) + absolute badge</span>
+      <span>Looks 8/10 | Actually 2/10</span>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <div class="pricing-toggle-wrap">
+      <div class="pricing-toggle" id="pricingToggle">
+        <div class="pricing-toggle-pill"></div>
+        <button class="pricing-toggle-btn active" data-period="monthly">Monthly</button>
+        <button class="pricing-toggle-btn" data-period="annual">Annual</button>
+      </div>
+      <span class="pricing-save" id="pricingSave">Save 20%</span>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">Starter</div>
+        <div class="pricing-price" data-monthly="29" data-annual="23">$29</div>
+        <div class="pricing-price-period">per month</div>
+        <div class="pricing-features">
+          <div class="pricing-feature">Single page builds</div>
+          <div class="pricing-feature">Basic responsive</div>
+          <div class="pricing-feature">Standard deployment</div>
+          <div class="pricing-feature">Email support</div>
+        </div>
+        <button class="pricing-cta">Get Started</button>
+      </div>
+
+      <div class="pricing-card recommended">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-name">Professional</div>
+        <div class="pricing-price" data-monthly="79" data-annual="63">$79</div>
+        <div class="pricing-price-period">per month</div>
+        <div class="pricing-features">
+          <div class="pricing-feature">Multi-page projects</div>
+          <div class="pricing-feature">Full IDWIP validation</div>
+          <div class="pricing-feature">Ripple Effect system</div>
+          <div class="pricing-feature">History snapshots</div>
+          <div class="pricing-feature">Priority support</div>
+        </div>
+        <button class="pricing-cta">Get Started</button>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-name">Enterprise</div>
+        <div class="pricing-price" data-monthly="199" data-annual="159">$199</div>
+        <div class="pricing-price-period">per month</div>
+        <div class="pricing-features">
+          <div class="pricing-feature">Unlimited projects</div>
+          <div class="pricing-feature">Custom integrations</div>
+          <div class="pricing-feature">Dedicated account</div>
+          <div class="pricing-feature">White-label option</div>
+          <div class="pricing-feature">SLA guarantee</div>
+        </div>
+        <button class="pricing-cta">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     7. SKEWED SECTION
+     ═══════════════════════════════════════ -->
+<section class="skew-section reveal" id="skew">
+  <div class="section-inner">
+    <div>
+      <div class="section-label">Pattern 05</div>
+      <h2 class="section-title gradient-text">Skewed Section Breaks</h2>
+      <p class="section-subtitle">clip-path creates an angled section edge without rotated containers or overflow hacks. Content stays level. Stripe pioneered this.</p>
+      <div class="technique-tag">
+        <span>clip-path: polygon() + no transform needed</span>
+        <span>Looks 7/10 | Actually 1/10</span>
+      </div>
+    </div>
+    <div class="skew-visual">
+      <div class="skew-stat-card">
+        <div class="skew-stat-value">7</div>
+        <div class="skew-stat-label">Systems</div>
+      </div>
+      <div class="skew-stat-card">
+        <div class="skew-stat-value">3</div>
+        <div class="skew-stat-label">Gates</div>
+      </div>
+      <div class="skew-stat-card">
+        <div class="skew-stat-value">49</div>
+        <div class="skew-stat-label">Questions</div>
+      </div>
+      <div class="skew-stat-card">
+        <div class="skew-stat-value">12</div>
+        <div class="skew-stat-label">Snapshots</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. OVERLAPPING SECTION
+     ═══════════════════════════════════════ -->
+<section class="overlap-section reveal" id="overlap">
+  <div class="section-inner">
+    <div class="section-label">Pattern 06</div>
+    <h2 class="section-title gradient-text">Overlapping Section Bridge</h2>
+    <p class="section-subtitle">A card uses negative margin to bridge two sections. Strong shadow separates it from both backgrounds. Creates visual depth between flat sections.</p>
+    <div class="technique-tag" style="margin-bottom: 42px;">
+      <span>margin-bottom: -100px + box-shadow layering</span>
+      <span>Looks 8/10 | Actually 1/10</span>
+    </div>
+
+    <div class="overlap-card">
+      <div>
+        <div class="overlap-stat">100%</div>
+        <div class="overlap-stat-label">Client Approval Rate</div>
+      </div>
+      <div class="overlap-text">
+        <h3>The Numbers Speak</h3>
+        <p>Every project that completes the full AG workflow ships with a perfect approval score. The system eliminates guesswork before the first line is written.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="overlap-target">
+  <div class="section-inner">
+    <!-- Content that sits behind the overlapping card -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 21px;">
+      <div style="text-align: center;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; color: var(--warm-gold); font-weight: 500;">42s</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted); margin-top: 4px;">Avg Deploy Time</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; color: var(--warm-gold); font-weight: 500;">0</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted); margin-top: 4px;">Post-Launch Bugs</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; color: var(--warm-gold); font-weight: 500;">100%</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted); margin-top: 4px;">Responsive Score</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; color: var(--warm-gold); font-weight: 500;">94</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--ui-text-muted); margin-top: 4px;">Lighthouse Avg</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════
+     9. GRID ACCORDION (FAQ)
+     ═══════════════════════════════════════ -->
+<section class="section" id="accordion">
+  <div class="reveal">
+    <div class="section-label">Pattern 07</div>
+    <h2 class="section-title gradient-text">Grid-Rows Accordion</h2>
+    <p class="section-subtitle">grid-template-rows: 0fr to 1fr with transition. Smoother than the max-height hack. No arbitrary values. Native CSS collapse.</p>
+    <div class="technique-tag">
+      <span>grid-template-rows: 0fr/1fr + overflow: hidden</span>
+      <span>Looks 6/10 | Actually 1/10</span>
+    </div>
+  </div>
+
+  <div class="accordion-list reveal">
+    <div class="accordion-item open">
+      <button class="accordion-trigger">
+        What is the aurora background effect?
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-inner">
+          <div class="accordion-text">Three absolutely-positioned divs with massive box-shadow blur radii (45vmax each). Each animated on position with staggered durations (9s, 14s, 21s) and hue-rotate cycling. The blur creates soft blending. Pioneered by Linear, now the defining dark-mode SaaS aesthetic.</div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-trigger">
+        How does the glow border rotation work?
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-inner">
+          <div class="accordion-text">A ::before pseudo-element uses conic-gradient(from var(--angle)) that rotates via @property --angle animation. The mask-composite: exclude technique constrains the gradient to appear only as a 1px border. The ::after pseudo covers the card interior. On hover, the ::before fades in with opacity transition.</div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-trigger">
+        What makes the spotlight effect work?
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-inner">
+          <div class="accordion-text">A radial-gradient positioned at CSS custom properties --spot-x and --spot-y. JavaScript mousemove listener calculates cursor position relative to the card and sets these properties. The overlay has opacity: 0 by default, transitioning to opacity: 1 on hover. The gradient creates a soft glow circle that follows the cursor.</div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-trigger">
+        How is the infinite marquee pure CSS?
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-inner">
+          <div class="accordion-text">The logos are duplicated in the HTML (two identical sets). The container uses width: max-content with animation: translateX(-50%). When the animation reaches the duplicate set, it loops seamlessly because both sets are identical. Edge fading uses mask-image: linear-gradient() on the wrapper. Pauses on hover with animation-play-state: paused.</div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-trigger">
+        What is the grid-template-rows accordion trick?
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-inner">
+          <div class="accordion-text">Instead of the classic max-height: 0 to max-height: 999px hack (which has timing issues), this uses grid-template-rows: 0fr transitioning to 1fr. The inner content has overflow: hidden. This creates a perfectly smooth collapse/expand with no arbitrary values. The browser calculates the exact height. Works in all modern browsers.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal">
+  <div class="section-label" style="justify-content: center;">Complete Library</div>
+  <h2 class="cta-title gradient-text">Every Pattern. One System.</h2>
+  <p class="cta-desc">
+    Aurora backgrounds, glow borders, spotlight grids, infinite marquees, metric testimonials, sliding toggles, skewed sections, overlapping bridges, grid accordions, and a command palette. All in code. All in the AG design system.
+  </p>
+  <a href="#" class="cta-btn">Build With These</a>
+</section>
+
+<footer class="footer">
+  <div class="footer-brand">ARC GARDE</div>
+  <div class="footer-sub">SaaS Techniques Masterclass - 2026</div>
+</footer>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── CURSOR ──
+  const cursorGlow = document.querySelector('.cursor-glow');
+  const cursorDot = document.querySelector('.cursor-dot');
+  const cursorRing = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, dx = 0, dy = 0, rx = 0, ry = 0, gx = 0, gy = 0;
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  (function animCursor() {
+    dx += (mx - dx) * 0.7; dy += (my - dy) * 0.7;
+    rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14;
+    gx += (mx - gx) * 0.07; gy += (my - gy) * 0.07;
+    cursorDot.style.left = dx + 'px'; cursorDot.style.top = dy + 'px';
+    cursorRing.style.left = rx + 'px'; cursorRing.style.top = ry + 'px';
+    cursorGlow.style.left = gx + 'px'; cursorGlow.style.top = gy + 'px';
+    requestAnimationFrame(animCursor);
+  })();
+
+  document.querySelectorAll('a, button, .glow-card, .spotlight-card, .testimonial-card, .pricing-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursorRing.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovering'));
+  });
+
+  // ── NAV SCROLL ──
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 100));
+
+  // ── SLIDING TAB INDICATOR ──
+  const navLinks = document.getElementById('navLinks');
+  const navIndicator = document.getElementById('navIndicator');
+  const links = navLinks.querySelectorAll('.nav-link');
+
+  links.forEach(link => {
+    link.addEventListener('mouseenter', () => {
+      navIndicator.style.width = link.offsetWidth + 'px';
+      navIndicator.style.transform = 'translateX(' + link.offsetLeft + 'px)';
+      navIndicator.style.opacity = '1';
+    });
+  });
+  navLinks.addEventListener('mouseleave', () => { navIndicator.style.opacity = '0'; });
+
+  // ── REVEAL ON SCROLL ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── SPOTLIGHT MOUSE TRACKING ──
+  document.querySelectorAll('.spotlight-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const overlay = card.querySelector('.spotlight-overlay');
+      overlay.style.setProperty('--spot-x', x + 'px');
+      overlay.style.setProperty('--spot-y', y + 'px');
+    });
+  });
+
+  // ── PRICING TOGGLE ──
+  const toggle = document.getElementById('pricingToggle');
+  const saveBadge = document.getElementById('pricingSave');
+  const toggleBtns = toggle.querySelectorAll('.pricing-toggle-btn');
+  const prices = document.querySelectorAll('.pricing-price');
+  let isAnnual = false;
+
+  toggle.addEventListener('click', () => {
+    isAnnual = !isAnnual;
+    toggle.classList.toggle('annual', isAnnual);
+    saveBadge.classList.toggle('show', isAnnual);
+
+    toggleBtns.forEach(btn => {
+      btn.classList.toggle('active',
+        (isAnnual && btn.dataset.period === 'annual') ||
+        (!isAnnual && btn.dataset.period === 'monthly')
+      );
+    });
+
+    prices.forEach(p => {
+      const val = isAnnual ? p.dataset.annual : p.dataset.monthly;
+      p.style.transform = 'translateY(-6px)';
+      p.style.opacity = '0';
+      setTimeout(() => {
+        p.textContent = '$' + val;
+        p.style.transform = 'translateY(6px)';
+        setTimeout(() => {
+          p.style.transition = 'transform 0.3s var(--ease-enterprise), opacity 0.3s';
+          p.style.transform = 'translateY(0)';
+          p.style.opacity = '1';
+        }, 30);
+      }, 150);
+    });
+  });
+
+  // ── ACCORDION ──
+  document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const item = trigger.parentElement;
+      const wasOpen = item.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
+      // Toggle clicked
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // ── COMMAND PALETTE (CMD+K / CTRL+K) ──
+  const cmdOverlay = document.getElementById('cmdOverlay');
+  const cmdInput = document.getElementById('cmdInput');
+  const cmdResults = document.querySelectorAll('.cmd-result');
+  let cmdOpen = false;
+  let activeIndex = 0;
+
+  function openCmd() {
+    cmdOpen = true;
+    cmdOverlay.classList.add('open');
+    requestAnimationFrame(() => {
+      cmdOverlay.classList.add('visible');
+      cmdInput.focus();
+    });
+  }
+
+  function closeCmd() {
+    cmdOpen = false;
+    cmdOverlay.classList.remove('visible');
+    setTimeout(() => cmdOverlay.classList.remove('open'), 200);
+    cmdInput.value = '';
+    filterResults('');
+  }
+
+  function setActive(idx) {
+    const visible = [...cmdResults].filter(r => r.style.display !== 'none');
+    if (visible.length === 0) return;
+    activeIndex = Math.max(0, Math.min(idx, visible.length - 1));
+    cmdResults.forEach(r => r.classList.remove('active'));
+    visible[activeIndex].classList.add('active');
+    visible[activeIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  function filterResults(query) {
+    const q = query.toLowerCase();
+    let visibleCount = 0;
+    cmdResults.forEach(r => {
+      const text = r.querySelector('.cmd-result-text').textContent.toLowerCase();
+      const match = !q || text.includes(q);
+      r.style.display = match ? 'flex' : 'none';
+      if (match) visibleCount++;
+    });
+    activeIndex = 0;
+    setActive(0);
+  }
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      cmdOpen ? closeCmd() : openCmd();
+    }
+    if (!cmdOpen) return;
+    if (e.key === 'Escape') { closeCmd(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }
+    if (e.key === 'Enter') {
+      const visible = [...cmdResults].filter(r => r.style.display !== 'none');
+      if (visible[activeIndex]) {
+        const target = visible[activeIndex].dataset.target;
+        const el = document.getElementById(target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        closeCmd();
+      }
+    }
+  });
+
+  cmdInput.addEventListener('input', () => filterResults(cmdInput.value));
+  cmdOverlay.addEventListener('click', e => { if (e.target === cmdOverlay) closeCmd(); });
+
+  cmdResults.forEach(r => {
+    r.addEventListener('click', () => {
+      const target = r.dataset.target;
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      closeCmd();
+    });
+  });
+
+})();
+</script>
+</body>
+</html>

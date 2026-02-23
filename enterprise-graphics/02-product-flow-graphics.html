@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern 2: Product Flow Graphics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PATTERN 2: PRODUCT FLOW GRAPHICS
+   Used by: Vercel, GitHub, Retool
+
+   KEY TECHNIQUES:
+   - Multiple UI panels arranged in a staircase/diagonal flow
+   - SVG connection lines drawn between panels
+   - Animated dashed lines (stroke-dashoffset animation)
+   - Animated dots flowing along SVG paths
+   - Offset grid positioning
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.section-header {
+  text-align: center;
+  padding: 60px 24px 20px;
+}
+.section-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   THE FLOW CONTAINER
+   - position: relative so SVG lines and panels can be
+     absolutely positioned
+   - Fixed height to contain the staircase layout
+   ============================================================ */
+.flow-container {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  min-height: 650px;
+}
+
+/* ============================================================
+   SVG CONNECTION LAYER
+   - Sits behind the panels (z-index: 1)
+   - Absolutely positioned to fill the container
+   - Contains all connection paths
+   ============================================================ */
+.flow-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   CONNECTION LINE STYLES
+
+   TECHNIQUE: stroke-dasharray + stroke-dashoffset animation
+
+   stroke-dasharray: "10 6" means 10px dash, 6px gap
+   Animating stroke-dashoffset makes the dashes "march"
+   along the path (the "marching ants" effect).
+   ============================================================ */
+.connection-line {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 10 6;
+  animation: marchingAnts 1.4s linear infinite;
+}
+
+@keyframes marchingAnts {
+  to { stroke-dashoffset: -16; } /* dash (10) + gap (6) = 16 */
+}
+
+/* Solid line variant (no animation) */
+.connection-line-solid {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.15);
+  stroke-width: 1.5;
+}
+
+/* ============================================================
+   ANIMATED DOT ON PATH
+
+   TECHNIQUE: Uses SVG <circle> with CSS offset-path
+   or SVG <animateMotion> to travel along a path.
+
+   Here we use CSS offset-path + offset-distance for
+   maximum browser support and CSS control.
+   ============================================================ */
+.flow-dot {
+  fill: #C4956A;
+  filter: drop-shadow(0 0 4px rgba(196, 149, 106, 0.6));
+}
+
+/* ============================================================
+   FLOW PANELS
+   - Absolutely positioned in a staircase pattern
+   - Each step moves right and down
+   - z-index: 2 to sit above the SVG lines
+   ============================================================ */
+.flow-panel {
+  position: absolute;
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 10px;
+  z-index: 2;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 16px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Staircase positioning: each panel steps right + down */
+.flow-panel-1 { left: 20px;  top: 60px;  width: 240px; }
+.flow-panel-2 { left: 220px; top: 200px; width: 260px; }
+.flow-panel-3 { left: 440px; top: 340px; width: 240px; }
+.flow-panel-4 { left: 620px; top: 160px; width: 220px; }
+
+/* Panel header (mini title bar) */
+.flow-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: #252320;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.06);
+  gap: 8px;
+}
+.flow-panel-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+.icon-code   { background: rgba(122, 92, 56, 0.3); color: #C4956A; }
+.icon-build  { background: rgba(254, 188, 46, 0.2); color: #febc2e; }
+.icon-deploy { background: rgba(40, 200, 64, 0.2);  color: #28c840; }
+.icon-live   { background: rgba(106, 173, 186, 0.2); color: #6aadba; }
+
+.flow-panel-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a7e72;
+}
+
+.flow-panel-body {
+  padding: 14px;
+}
+
+/* Status indicator */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #28c840;
+  animation: pulse 2.1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(40, 200, 64, 0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(40, 200, 64, 0); }
+}
+
+.status-text {
+  font-size: 11px;
+  color: #6b6057;
+}
+
+/* Fake code lines */
+.code-line {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #6b6057;
+}
+.code-line .hl { color: #C4956A; }
+.code-line .str { color: #7dba6a; }
+
+/* Fake progress bar */
+.progress-bar-bg {
+  height: 4px;
+  background: #252320;
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 75%;
+  background: linear-gradient(90deg, #7A5C38, #C4956A);
+  border-radius: 2px;
+  animation: progressPulse 3s ease-in-out infinite;
+}
+@keyframes progressPulse {
+  0%, 100% { width: 65%; }
+  50% { width: 85%; }
+}
+
+/* Step label (number badges on arrows) */
+.step-label {
+  position: absolute;
+  z-index: 3;
+  background: #252320;
+  border: 1px solid rgba(196, 149, 106, 0.2);
+  color: #C4956A;
+  font-size: 10px;
+  font-weight: 600;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-1 { left: 180px; top: 170px; }
+.step-2 { left: 380px; top: 310px; }
+.step-3 { left: 570px; top: 280px; }
+
+/* ============================================================
+   ANNOTATIONS
+   ============================================================ */
+.annotations {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.annotation {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.annotation h3 {
+  font-size: 14px;
+  color: #C4956A;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.annotation p {
+  font-size: 13px;
+  color: #8a7e72;
+  line-height: 1.6;
+}
+.annotation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+</style>
+</head>
+<body>
+
+<div class="section-header">
+  <h1>Pattern 2: Product Flow Graphics</h1>
+  <p>Multiple UI panels connected by animated SVG lines showing a workflow. Code to build to deploy to live. Used by Vercel, GitHub, and Retool.</p>
+</div>
+
+<div class="flow-container">
+
+  <!-- ============================================================
+       SVG CONNECTION LINES
+
+       These are drawn as SVG paths positioned between the panels.
+       The key insight: the SVG layer fills the entire container,
+       and path coordinates match the panel positions.
+
+       Cubic bezier curves (C command) create smooth curved
+       connections between panels.
+       ============================================================ -->
+  <svg class="flow-svg" viewBox="0 0 900 650" preserveAspectRatio="xMidYMid meet">
+    <!-- Connection 1: Code Editor -> Build -->
+    <path class="connection-line"
+          d="M 260 130
+             C 310 130, 240 270, 290 270"
+          />
+
+    <!-- Connection 2: Build -> Deploy -->
+    <path class="connection-line"
+          d="M 480 320
+             C 530 320, 460 410, 510 410"
+          style="animation-delay: 0.3s"
+          />
+
+    <!-- Connection 3: Build -> Live Site (curved up) -->
+    <path class="connection-line"
+          d="M 480 260
+             C 560 240, 580 220, 640 220"
+          style="animation-delay: 0.6s"
+          />
+
+    <!-- Animated dots traveling along paths -->
+    <!-- Dot on path 1 -->
+    <circle class="flow-dot" r="4">
+      <animateMotion
+        dur="3s"
+        repeatCount="indefinite"
+        path="M 260 130 C 310 130, 240 270, 290 270"
+      />
+    </circle>
+
+    <!-- Dot on path 2 -->
+    <circle class="flow-dot" r="4">
+      <animateMotion
+        dur="3s"
+        repeatCount="indefinite"
+        begin="0.9s"
+        path="M 480 320 C 530 320, 460 410, 510 410"
+      />
+    </circle>
+
+    <!-- Dot on path 3 -->
+    <circle class="flow-dot" r="4">
+      <animateMotion
+        dur="2.1s"
+        repeatCount="indefinite"
+        begin="0.6s"
+        path="M 480 260 C 560 240, 580 220, 640 220"
+      />
+    </circle>
+
+    <!-- Arrow heads (small triangles at path endpoints) -->
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6"
+              refX="7" refY="3" orient="auto" fill="rgba(196,149,106,0.3)">
+        <polygon points="0 0, 8 3, 0 6" />
+      </marker>
+    </defs>
+  </svg>
+
+  <!-- Step number badges on the connections -->
+  <div class="step-label step-1">1</div>
+  <div class="step-label step-2">2</div>
+  <div class="step-label step-3">3</div>
+
+  <!-- PANEL 1: Code Editor -->
+  <div class="flow-panel flow-panel-1">
+    <div class="flow-panel-header">
+      <div class="flow-panel-icon icon-code">&lt;/&gt;</div>
+      <div class="flow-panel-title">Code Editor</div>
+    </div>
+    <div class="flow-panel-body">
+      <div class="code-line"><span class="hl">export</span> <span class="hl">default</span> <span class="hl">function</span> <span class="str">App</span>() {</div>
+      <div class="code-line">&nbsp;&nbsp;<span class="hl">return</span> &lt;<span class="str">Layout</span>&gt;</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="str">Hero</span> /&gt;</div>
+      <div class="code-line">&nbsp;&nbsp;&lt;/<span class="str">Layout</span>&gt;</div>
+      <div class="code-line">}</div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: Build Step -->
+  <div class="flow-panel flow-panel-2">
+    <div class="flow-panel-header">
+      <div class="flow-panel-icon icon-build">B</div>
+      <div class="flow-panel-title">Build Pipeline</div>
+    </div>
+    <div class="flow-panel-body">
+      <div class="status-row">
+        <div class="status-dot"></div>
+        <span class="status-text">Compiling modules...</span>
+      </div>
+      <div class="code-line"><span class="hl">Bundled</span> 847 modules</div>
+      <div class="code-line"><span class="hl">Optimized</span> 12 images</div>
+      <div class="code-line"><span class="hl">Generated</span> static pages</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Deployment -->
+  <div class="flow-panel flow-panel-3">
+    <div class="flow-panel-header">
+      <div class="flow-panel-icon icon-deploy">D</div>
+      <div class="flow-panel-title">Deployment</div>
+    </div>
+    <div class="flow-panel-body">
+      <div class="status-row">
+        <div class="status-dot" style="background: #28c840"></div>
+        <span class="status-text">Deployed to production</span>
+      </div>
+      <div class="code-line"><span class="str">yourapp.vercel.app</span></div>
+      <div class="code-line" style="margin-top: 4px; font-size: 10px;">Region: <span class="hl">iad1</span> (US East)</div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Live Site Preview -->
+  <div class="flow-panel flow-panel-4">
+    <div class="flow-panel-header">
+      <div class="flow-panel-icon icon-live">L</div>
+      <div class="flow-panel-title">Live Site</div>
+    </div>
+    <div class="flow-panel-body" style="text-align:center; padding: 20px 14px;">
+      <div style="font-size: 24px; font-weight: 600; color: #C4956A; margin-bottom: 4px;">Live</div>
+      <div style="font-size: 10px; color: #6b6057;">99.9% Uptime</div>
+      <div style="font-size: 10px; color: #28c840; margin-top: 4px;">All checks passing</div>
+    </div>
+  </div>
+</div>
+
+<!-- TECHNIQUE BREAKDOWN -->
+<div class="annotations">
+  <div class="annotation">
+    <h3>1. Staircase Layout</h3>
+    <p>Panels are absolutely positioned in a diagonal pattern: each step moves roughly 200px right and 140px down. This creates the "workflow flowing downhill" visual. The exact positions should be tuned by eye, not by formula. Vercel and GitHub both use this offset-grid approach where nothing is perfectly aligned.</p>
+  </div>
+  <div class="annotation">
+    <h3>2. SVG Connection Lines</h3>
+    <p>A single SVG element fills the entire container (<code>position: absolute; width: 100%; height: 100%</code>). Paths use cubic bezier curves (<code>C</code> command) to create smooth connections. The path start and end coordinates must match where the panels visually sit. The SVG <code>viewBox</code> dimensions match the container size so coordinates map 1:1.</p>
+  </div>
+  <div class="annotation">
+    <h3>3. Marching Ants Animation</h3>
+    <p><code>stroke-dasharray: 10 6</code> creates a dashed line (10px dash, 6px gap). <code>stroke-dashoffset</code> is animated from 0 to -16 (dash + gap = 16) which makes the dashes appear to "march" along the path. The animation is <code>linear infinite</code> for continuous flow. Stagger with <code>animation-delay</code> on each path for a cascade effect.</p>
+  </div>
+  <div class="annotation">
+    <h3>4. Flowing Dots</h3>
+    <p>SVG <code>&lt;animateMotion&gt;</code> moves a circle along a path. The path attribute duplicates the connection line path data. Duration controls speed (2-4 seconds is typical). Use <code>begin</code> attribute to stagger multiple dots. The dot has a <code>drop-shadow</code> filter for glow. Alternative: use CSS <code>offset-path</code> + <code>offset-distance</code> on an HTML element.</p>
+  </div>
+  <div class="annotation">
+    <h3>5. Panel Hierarchy</h3>
+    <p>Each panel has a small colored icon badge in the header that identifies its role. The icons use semantic colors: blue/bronze for code, yellow for build, green for deploy. Step number badges (the circled 1, 2, 3) sit at <code>z-index: 3</code> on top of the SVG lines, positioned at the midpoint of each connection.</p>
+  </div>
+  <div class="annotation">
+    <h3>6. Calculating Path Coordinates</h3>
+    <p>The simplest approach: position your panels first, then calculate the SVG paths. Start point = right edge of Panel A (panel left + panel width, panel top + panel height/2). End point = left edge of Panel B (panel left, panel top + panel height/2). Control points curve the line. For staircase layouts, offsetting control points by 60-80px from the midpoint creates natural curves.</p>
+  </div>
+</div>
+
+</body>
+</html>

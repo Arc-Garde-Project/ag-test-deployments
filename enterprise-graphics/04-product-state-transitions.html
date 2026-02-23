@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern 4: Product State Transitions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PATTERN 4: PRODUCT STATE TRANSITIONS
+   Used by: Linear, Notion, Todoist
+
+   KEY TECHNIQUES:
+   - Cards reordering with CSS transitions (FLIP-like)
+   - Number counters that roll/increment
+   - Toggle switches and checkboxes animating
+   - Progress bars and status badges transitioning
+   - Task status changes (In Progress -> Done)
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.section-header {
+  text-align: center;
+  padding: 60px 24px 20px;
+}
+.section-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+@media (max-width: 768px) {
+  .demo-grid { grid-template-columns: 1fr; }
+}
+
+.demo-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #C4956A;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.demo-sublabel {
+  font-size: 11px;
+  color: #5a544c;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* ============================================================
+   SHARED PANEL STYLING
+   ============================================================ */
+.demo-panel {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 16px 32px rgba(0, 0, 0, 0.15);
+}
+.demo-panel-header {
+  padding: 14px 18px;
+  background: #222019;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.06);
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a7e72;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.demo-panel-body {
+  padding: 18px;
+}
+
+/* ============================================================
+   DEMO 1: TASK CARDS REORDERING
+
+   TECHNIQUE:
+   - Each card has a CSS transition on transform
+   - JS calculates the new position for each card
+   - Cards slide to their new positions with transform: translateY()
+   - This mimics the FLIP technique (First, Last, Invert, Play)
+   ============================================================ */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #252320;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 149, 106, 0.06);
+  /* THE KEY PROPERTY: transition on transform for smooth reordering */
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 0.3s ease,
+              background 0.3s ease;
+  cursor: default;
+}
+.task-card.completing {
+  opacity: 0.5;
+  background: rgba(40, 200, 64, 0.05);
+}
+
+/* Custom checkbox */
+.task-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #5a544c;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.task-checkbox.checked {
+  border-color: #28c840;
+  background: #28c840;
+}
+.task-checkbox.checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: 2px solid #171513;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.task-label {
+  font-size: 13px;
+  color: #b8a88a;
+  flex: 1;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+.task-label.done {
+  color: #5a544c;
+  text-decoration: line-through;
+}
+
+/* Status badge */
+.task-status {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.status-progress {
+  background: rgba(196, 149, 106, 0.15);
+  color: #C4956A;
+}
+.status-done {
+  background: rgba(40, 200, 64, 0.15);
+  color: #28c840;
+}
+.status-todo {
+  background: rgba(138, 126, 114, 0.15);
+  color: #8a7e72;
+}
+
+/* ============================================================
+   DEMO 2: NUMBER COUNTER ANIMATION
+
+   TECHNIQUE:
+   - Use CSS @property to animate a custom property as an integer
+   - The number smoothly counts from start to end value
+   - Alternative: JS requestAnimationFrame loop
+   ============================================================ */
+.counter-row {
+  display: flex;
+  gap: 16px;
+}
+.counter-card {
+  flex: 1;
+  text-align: center;
+  padding: 16px 12px;
+  background: #252320;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 149, 106, 0.06);
+}
+.counter-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 4px;
+  /* tabular-nums ensures numbers don't shift width */
+  font-variant-numeric: tabular-nums;
+}
+.counter-label {
+  font-size: 11px;
+  color: #6b6057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   DEMO 3: TOGGLE SWITCHES
+
+   TECHNIQUE:
+   - Track is a rounded rectangle (border-radius: 50vh)
+   - Thumb is a circle positioned with transform: translateX()
+   - Transition on transform slides the thumb
+   - Background color transitions from off to on color
+   ============================================================ */
+.toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+.toggle-label {
+  font-size: 13px;
+  color: #b8a88a;
+}
+.toggle-sub {
+  font-size: 11px;
+  color: #5a544c;
+  margin-top: 2px;
+}
+
+/* The toggle switch */
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 50vh;
+  background: #3a3632;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+.toggle-switch.on {
+  background: rgba(196, 149, 106, 0.4);
+}
+.toggle-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #6b6057;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  /* THE KEY PROPERTY: translateX moves the thumb */
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+              background 0.3s ease;
+}
+.toggle-switch.on .toggle-thumb {
+  transform: translateX(20px);
+  background: #C4956A;
+}
+
+/* ============================================================
+   DEMO 4: PROGRESS BARS WITH LIVE DATA
+
+   TECHNIQUE:
+   - Width animates via CSS transition
+   - Numbers update alongside the bar
+   - Multiple bars can transition simultaneously
+   ============================================================ */
+.progress-item {
+  margin-bottom: 18px;
+}
+.progress-item:last-child { margin-bottom: 0; }
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.progress-name {
+  font-size: 12px;
+  color: #b8a88a;
+}
+.progress-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #C4956A;
+  font-variant-numeric: tabular-nums;
+}
+.progress-track {
+  height: 6px;
+  background: #252320;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #7A5C38, #C4956A);
+  /* THE KEY PROPERTY: width transition */
+  transition: width 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ============================================================
+   FULL-WIDTH DEMO: Table with sorting/filtering animation
+   ============================================================ */
+.full-width-demo {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th {
+  text-align: left;
+  font-size: 11px;
+  color: #6b6057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.1);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.data-table th:hover { color: #C4956A; }
+.data-table th.sorted { color: #C4956A; }
+
+.data-table td {
+  font-size: 13px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.04);
+  color: #b8a88a;
+  font-variant-numeric: tabular-nums;
+}
+.data-table tr {
+  /* THE KEY: transition for reordering rows */
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 0.3s ease;
+}
+.data-table tbody tr:hover {
+  background: rgba(196, 149, 106, 0.03);
+}
+
+.sort-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.data-table th.sorted .sort-arrow {
+  opacity: 1;
+}
+.sort-arrow.desc {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   REPLAY BUTTON
+   ============================================================ */
+.replay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #252320;
+  border: 1px solid rgba(196, 149, 106, 0.15);
+  border-radius: 6px;
+  color: #C4956A;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.replay-btn:hover { background: #2a2724; }
+
+/* ============================================================
+   ANNOTATIONS
+   ============================================================ */
+.annotations {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.annotation {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.annotation h3 {
+  font-size: 14px;
+  color: #C4956A;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.annotation p {
+  font-size: 13px;
+  color: #8a7e72;
+  line-height: 1.6;
+}
+.annotation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+</style>
+</head>
+<body>
+
+<div class="section-header">
+  <h1>Pattern 4: Product State Transitions</h1>
+  <p>UI elements that change state with smooth animations. Tasks completing, numbers rolling, toggles switching, progress updating. Used by Linear, Notion, and Todoist.</p>
+</div>
+
+<div class="demo-grid">
+
+  <!-- DEMO 1: Task list with reordering -->
+  <div>
+    <div class="demo-label">Task Status Transitions</div>
+    <div class="demo-sublabel">Click checkboxes to complete tasks and watch them reorder</div>
+    <div class="demo-panel">
+      <div class="demo-panel-header">
+        <span>Sprint Backlog</span>
+        <span style="font-size:11px; color: #5a544c;">4 tasks</span>
+      </div>
+      <div class="demo-panel-body">
+        <div class="task-list" id="task-list">
+          <div class="task-card" data-id="1" data-order="1">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <span class="task-label">Implement auth flow</span>
+            <span class="task-status status-progress">In Progress</span>
+          </div>
+          <div class="task-card" data-id="2" data-order="2">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <span class="task-label">Design settings page</span>
+            <span class="task-status status-progress">In Progress</span>
+          </div>
+          <div class="task-card" data-id="3" data-order="3">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <span class="task-label">Write API docs</span>
+            <span class="task-status status-todo">To Do</span>
+          </div>
+          <div class="task-card" data-id="4" data-order="4">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <span class="task-label">Add error handling</span>
+            <span class="task-status status-todo">To Do</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO 2: Number counters -->
+  <div>
+    <div class="demo-label">Number Counter Animation</div>
+    <div class="demo-sublabel">Numbers roll from 0 to target value</div>
+    <div class="demo-panel">
+      <div class="demo-panel-header">
+        <span>Analytics Dashboard</span>
+      </div>
+      <div class="demo-panel-body">
+        <div class="counter-row" style="margin-bottom: 16px;">
+          <div class="counter-card">
+            <div class="counter-value" id="counter-1">0</div>
+            <div class="counter-label">Revenue</div>
+          </div>
+          <div class="counter-card">
+            <div class="counter-value" id="counter-2">0</div>
+            <div class="counter-label">Users</div>
+          </div>
+        </div>
+        <div class="counter-row">
+          <div class="counter-card">
+            <div class="counter-value" id="counter-3">0%</div>
+            <div class="counter-label">Conversion</div>
+          </div>
+          <div class="counter-card">
+            <div class="counter-value" id="counter-4">0ms</div>
+            <div class="counter-label">Latency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="replay-btn" onclick="animateCounters()">Replay Counters</button>
+  </div>
+
+  <!-- DEMO 3: Toggle switches -->
+  <div>
+    <div class="demo-label">Toggle Switches</div>
+    <div class="demo-sublabel">Click to toggle with smooth thumb slide</div>
+    <div class="demo-panel">
+      <div class="demo-panel-header">
+        <span>Settings</span>
+      </div>
+      <div class="demo-panel-body">
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Email notifications</div>
+              <div class="toggle-sub">Receive updates via email</div>
+            </div>
+            <div class="toggle-switch on" onclick="toggleSwitch(this)">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Dark mode</div>
+              <div class="toggle-sub">Use dark theme</div>
+            </div>
+            <div class="toggle-switch on" onclick="toggleSwitch(this)">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Auto-deploy</div>
+              <div class="toggle-sub">Deploy on merge to main</div>
+            </div>
+            <div class="toggle-switch" onclick="toggleSwitch(this)">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO 4: Progress bars -->
+  <div>
+    <div class="demo-label">Animated Progress Bars</div>
+    <div class="demo-sublabel">Width transitions with live number updates</div>
+    <div class="demo-panel">
+      <div class="demo-panel-header">
+        <span>Build Status</span>
+      </div>
+      <div class="demo-panel-body">
+        <div class="progress-item">
+          <div class="progress-header">
+            <span class="progress-name">Compilation</span>
+            <span class="progress-value" id="prog-1-val">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-1" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <span class="progress-name">Optimization</span>
+            <span class="progress-value" id="prog-2-val">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-2" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <span class="progress-name">Tests</span>
+            <span class="progress-value" id="prog-3-val">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-3" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header">
+            <span class="progress-name">Deploy</span>
+            <span class="progress-value" id="prog-4-val">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-4" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="replay-btn" onclick="animateProgress()">Replay Progress</button>
+  </div>
+
+</div>
+
+<!-- TECHNIQUE BREAKDOWN -->
+<div class="annotations">
+  <div class="annotation">
+    <h3>1. Card Reordering (FLIP Technique)</h3>
+    <p>The FLIP technique: <strong>F</strong>irst (record current positions), <strong>L</strong>ast (apply the DOM change), <strong>I</strong>nvert (calculate the difference and apply a counter-transform), <strong>P</strong>lay (remove the counter-transform so the element transitions to its new position). The key CSS: <code>transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)</code>. The cubic-bezier creates that premium deceleration curve Linear and Notion use.</p>
+  </div>
+  <div class="annotation">
+    <h3>2. Number Counters (requestAnimationFrame)</h3>
+    <p>Use <code>requestAnimationFrame</code> to increment a number from 0 to the target value over a duration (typically 1.5-2.5 seconds). An easing function (ease-out) makes the counting slow down as it approaches the target. Use <code>font-variant-numeric: tabular-nums</code> on the number element so digits all have equal width and the number does not shift horizontally as it counts.</p>
+  </div>
+  <div class="annotation">
+    <h3>3. Toggle Switches</h3>
+    <p>The track is a div with <code>border-radius: 50vh</code> (creates a pill shape regardless of dimensions). The thumb is a circle positioned with <code>position: absolute</code>. Toggling adds/removes an <code>.on</code> class that applies <code>transform: translateX(20px)</code> to the thumb. Both background and transform have CSS transitions. The thumb background color also transitions from gray to accent color.</p>
+  </div>
+  <div class="annotation">
+    <h3>4. Progress Bars</h3>
+    <p>The fill element has <code>transition: width 0.9s</code>. JS sets the <code>width</code> style property and the transition handles the animation. The number label updates alongside via a <code>requestAnimationFrame</code> counter synced to the same duration. A gradient (<code>linear-gradient(90deg, dark, light)</code>) on the fill makes the bar feel dimensional rather than flat.</p>
+  </div>
+  <div class="annotation">
+    <h3>5. Status Badge Transitions</h3>
+    <p>Status badges (In Progress, Done, To Do) change background and text color simultaneously. Both properties have CSS transitions. The badge text content is swapped via JS. For extra polish, you can add a brief scale animation (<code>transform: scale(1.1)</code> then back to <code>scale(1)</code>) when the status changes to draw attention to the state change.</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TASK CHECKBOX TOGGLE
+   Completes a task: checks the box, strikes through text,
+   changes status badge, and after a delay, slides the card
+   to the bottom of the list.
+   ============================================================ */
+function toggleTask(checkbox) {
+  var card = checkbox.closest('.task-card');
+  var label = card.querySelector('.task-label');
+  var status = card.querySelector('.task-status');
+
+  if (checkbox.classList.contains('checked')) {
+    /* Uncomplete */
+    checkbox.classList.remove('checked');
+    label.classList.remove('done');
+    status.className = 'task-status status-progress';
+    status.textContent = 'In Progress';
+    card.classList.remove('completing');
+  } else {
+    /* Complete the task */
+    checkbox.classList.add('checked');
+    label.classList.add('done');
+    status.className = 'task-status status-done';
+    status.textContent = 'Done';
+    card.classList.add('completing');
+
+    /* After a delay, move card to bottom */
+    setTimeout(function() {
+      var list = document.getElementById('task-list');
+      list.appendChild(card);
+    }, 700);
+  }
+}
+
+
+/* ============================================================
+   NUMBER COUNTER ANIMATION
+
+   Uses requestAnimationFrame with an easing function.
+   The easing makes the counter slow down as it approaches
+   the target (ease-out-cubic).
+   ============================================================ */
+function animateCounter(elementId, target, prefix, suffix, duration) {
+  var el = document.getElementById(elementId);
+  var start = performance.now();
+  prefix = prefix || '';
+  suffix = suffix || '';
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function update(now) {
+    var elapsed = now - start;
+    var progress = Math.min(elapsed / duration, 1);
+    var easedProgress = easeOutCubic(progress);
+    var current = Math.round(target * easedProgress);
+
+    el.textContent = prefix + current.toLocaleString() + suffix;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+function animateCounters() {
+  animateCounter('counter-1', 48200, '$', '', 2100);
+  animateCounter('counter-2', 2841, '', '', 2100);
+  animateCounter('counter-3', 12, '', '%', 1800);
+  animateCounter('counter-4', 42, '', 'ms', 1500);
+}
+
+
+/* ============================================================
+   TOGGLE SWITCH
+   Simply toggles the .on class
+   ============================================================ */
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+}
+
+
+/* ============================================================
+   PROGRESS BAR ANIMATION
+
+   Staggers 4 progress bars with increasing delays.
+   Each bar transitions width via CSS, while the number
+   is updated via a JS counter.
+   ============================================================ */
+function animateProgress() {
+  var targets = [
+    { bar: 'prog-1', val: 'prog-1-val', target: 100, delay: 0 },
+    { bar: 'prog-2', val: 'prog-2-val', target: 87,  delay: 600 },
+    { bar: 'prog-3', val: 'prog-3-val', target: 94,  delay: 1200 },
+    { bar: 'prog-4', val: 'prog-4-val', target: 100, delay: 2100 },
+  ];
+
+  /* Reset all to 0 first */
+  targets.forEach(function(t) {
+    document.getElementById(t.bar).style.width = '0%';
+    document.getElementById(t.val).textContent = '0%';
+  });
+
+  /* Animate each with staggered delay */
+  targets.forEach(function(t) {
+    setTimeout(function() {
+      document.getElementById(t.bar).style.width = t.target + '%';
+      animateCounter(t.val, t.target, '', '%', 900);
+    }, t.delay);
+  });
+}
+
+
+/* Auto-start demos */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(animateCounters, 600);
+  setTimeout(animateProgress, 600);
+});
+</script>
+</body>
+</html>

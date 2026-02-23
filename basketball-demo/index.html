@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Transfer Network — 3D Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #040810;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden; position: relative; color: #fff;
+}
+
+#globeCanvas {
+  position: fixed; inset: 0; z-index: 0;
+}
+
+.ui-layer {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  width: 95vw; max-width: 960px;
+  pointer-events: none;
+}
+.ui-layer * { pointer-events: auto; }
+
+.header { text-align: center; margin-bottom: 16px; }
+.logo { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.logo-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 18px; height: 18px; }
+.logo-text {
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  background: linear-gradient(90deg, #00d4ff, #7c3aed);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.header h1 {
+  font-size: clamp(1.4rem, 4vw, 2.4rem); font-weight: 800;
+  letter-spacing: -0.5px; line-height: 1.15;
+}
+.header h1 span {
+  background: linear-gradient(90deg, #00d4ff, #00ffaa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle {
+  font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.4);
+  margin-top: 6px; letter-spacing: 0.5px;
+}
+
+/* Globe spacer */
+.globe-spacer { height: clamp(340px, 55vh, 520px); width: 100%; position: relative; }
+
+/* Transfer feed */
+.transfer-feed {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px;
+  max-width: 200px;
+}
+.feed-item {
+  background: rgba(8,16,35,0.85); border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 10px; padding: 8px 14px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 12px rgba(0,212,255,0.05);
+}
+.feed-route {
+  font-size: 0.55rem; color: rgba(255,255,255,0.4); font-weight: 500;
+  display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
+}
+.feed-route .arrow { color: #00d4ff; }
+.feed-amount { font-size: 0.8rem; font-weight: 700; color: #00ffaa; }
+.feed-time { font-size: 0.5rem; color: rgba(255,255,255,0.25); margin-top: 2px; }
+
+/* Bottom UI */
+.tagline { text-align: center; margin-top: 8px; }
+.tagline-text { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; }
+
+.stats-bar {
+  display: flex; justify-content: center; gap: clamp(20px, 5vw, 48px);
+  margin-top: 16px;
+}
+.stat { text-align: center; }
+.stat-number {
+  display: block; font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 800; line-height: 1.2;
+  background: linear-gradient(90deg, #00d4ff, #00ffaa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-label {
+  font-size: 0.6rem; font-weight: 500; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+.replay-btn {
+  margin-top: 16px; padding: 10px 28px;
+  background: rgba(0,212,255,0.08); backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,212,255,0.2); border-radius: 30px;
+  color: rgba(255,255,255,0.7); font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.replay-btn:hover { background: rgba(0,212,255,0.15); border-color: rgba(0,212,255,0.35); color: #fff; }
+.replay-btn svg { width: 14px; height: 14px; }
+
+@media (max-width: 640px) {
+  .transfer-feed { position: static; transform: none; max-width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .feed-item { flex: 0 0 auto; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="globeCanvas"></canvas>
+
+<div class="ui-layer">
+  <header class="header" id="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+      </div>
+      <span class="logo-text">SwiftPay</span>
+    </div>
+    <h1>Send Money <span>Anywhere</span></h1>
+    <p class="subtitle">Instant transfers across 180+ countries. Zero borders.</p>
+  </header>
+
+  <div class="globe-spacer">
+    <div class="transfer-feed" id="transferFeed"></div>
+  </div>
+
+  <div class="tagline" id="tagline"><div class="tagline-text">No borders. No limits. Just send.</div></div>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat"><span class="stat-number" id="statCountries">0</span><span class="stat-label">Countries</span></div>
+    <div class="stat"><span class="stat-number" id="statTransferred">$0</span><span class="stat-label">Transferred</span></div>
+    <div class="stat"><span class="stat-number" id="statUsers">0</span><span class="stat-label">Users</span></div>
+    <div class="stat"><span class="stat-number" id="statSpeed">&lt;0s</span><span class="stat-label">Avg Speed</span></div>
+  </div>
+
+  <button class="replay-btn" id="replayBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/>
+    </svg>
+    Replay
+  </button>
+</div>
+
+<!-- Three.js + GSAP -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+
+<script>
+(function() {
+  const $ = id => document.getElementById(id);
+  const DEG = Math.PI / 180;
+
+  /* ═══════════════════════════════════════
+     CITY DATA (lat/lon)
+  ═══════════════════════════════════════ */
+  const CITIES = {
+    nyc:       { lat: 40.71, lon: -74.01, label: 'New York' },
+    saoPaulo:  { lat: -23.55, lon: -46.63, label: 'São Paulo' },
+    london:    { lat: 51.51, lon: -0.13,  label: 'London' },
+    lagos:     { lat: 6.52,  lon: 3.38,   label: 'Lagos' },
+    nairobi:   { lat: -1.29, lon: 36.82,  label: 'Nairobi' },
+    dubai:     { lat: 25.20, lon: 55.27,  label: 'Dubai' },
+    mumbai:    { lat: 19.08, lon: 72.88,  label: 'Mumbai' },
+    singapore: { lat: 1.35,  lon: 103.82, label: 'Singapore' },
+    tokyo:     { lat: 35.68, lon: 139.69, label: 'Tokyo' },
+    sydney:    { lat: -33.87, lon: 151.21, label: 'Sydney' }
+  };
+
+  const TRANSFERS = [
+    { from: 'nyc',      to: 'london',    amount: '$2,500',   time: 'Just now' },
+    { from: 'london',   to: 'dubai',     amount: '£1,200',   time: '2s ago' },
+    { from: 'dubai',    to: 'singapore', amount: '$3,100',   time: '4s ago' },
+    { from: 'saoPaulo', to: 'lagos',     amount: 'R$5,000',  time: '5s ago' },
+    { from: 'tokyo',    to: 'sydney',    amount: '¥150,000', time: '7s ago' },
+    { from: 'mumbai',   to: 'nyc',       amount: '₹85,000',  time: '9s ago' },
+    { from: 'singapore', to: 'london',   amount: 'S$4,200',  time: '11s ago' },
+    { from: 'nairobi',  to: 'dubai',     amount: 'KSh50,000', time: '12s ago' }
+  ];
+
+  /* ═══════════════════════════════════════
+     THREE.JS SETUP
+  ═══════════════════════════════════════ */
+  const canvas = $('globeCanvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 4.2;
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* ═══════════════════════════════════════
+     GLOBE
+  ═══════════════════════════════════════ */
+  const globeGroup = new THREE.Group();
+  scene.add(globeGroup);
+
+  // Atmosphere glow (outer shell)
+  const atmosGeo = new THREE.SphereGeometry(1.15, 64, 64);
+  const atmosMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      void main() {
+        float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+        gl_FragColor = vec4(0.0, 0.6, 1.0, intensity * 0.4);
+      }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true
+  });
+  globeGroup.add(new THREE.Mesh(atmosGeo, atmosMat));
+
+  // Globe sphere
+  const globeGeo = new THREE.SphereGeometry(1, 64, 64);
+  const globeMat = new THREE.MeshPhongMaterial({
+    color: 0x0a1628,
+    emissive: 0x050d18,
+    specular: 0x111833,
+    shininess: 15,
+    transparent: true,
+    opacity: 0.95
+  });
+  const globeMesh = new THREE.Mesh(globeGeo, globeMat);
+  globeGroup.add(globeMesh);
+
+  // Wireframe grid
+  const wireGeo = new THREE.SphereGeometry(1.005, 36, 18);
+  const wireMat = new THREE.MeshBasicMaterial({
+    color: 0x00aaff, wireframe: true, transparent: true, opacity: 0.04
+  });
+  globeGroup.add(new THREE.Mesh(wireGeo, wireMat));
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x334466, 0.6));
+  const dirLight = new THREE.DirectionalLight(0x88bbff, 0.8);
+  dirLight.position.set(5, 3, 5);
+  scene.add(dirLight);
+  const pointLight = new THREE.PointLight(0x00d4ff, 0.5, 10);
+  pointLight.position.set(-3, 2, 3);
+  scene.add(pointLight);
+
+  /* ═══════════════════════════════════════
+     GEOGRAPHY — Real coastlines from TopoJSON
+  ═══════════════════════════════════════ */
+  function latLonToVec3(lat, lon, r) {
+    const phi = (90 - lat) * DEG;
+    const theta = (lon + 180) * DEG;
+    return new THREE.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta)
+    );
+  }
+
+  function decodeTopo(data) {
+    const tf = data.transform, rawArcs = data.arcs;
+    const decoded = rawArcs.map(arc => {
+      let x = 0, y = 0;
+      return arc.map(([dx, dy]) => {
+        x += dx; y += dy;
+        return [x * tf.scale[0] + tf.translate[0], y * tf.scale[1] + tf.translate[1]];
+      });
+    });
+    function getArc(i) { return i >= 0 ? decoded[i] : [...decoded[~i]].reverse(); }
+    function buildRing(indices) {
+      const coords = [];
+      indices.forEach(i => {
+        getArc(i).forEach((pt, j) => { if (!(j === 0 && coords.length > 0)) coords.push(pt); });
+      });
+      return coords;
+    }
+
+    const allCoords = [];
+    data.objects.land.geometries[0].arcs.forEach(polygon => {
+      polygon.forEach(ring => allCoords.push(buildRing(ring)));
+    });
+
+    // Build line segments for all coastlines
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00bbff, transparent: true, opacity: 0.25 });
+    const landGroup = new THREE.Group();
+
+    allCoords.forEach(coords => {
+      if (coords.length < 3) return;
+      // Sample every Nth point to keep performance good
+      const step = coords.length > 200 ? 3 : coords.length > 80 ? 2 : 1;
+      const pts = [];
+      for (let i = 0; i < coords.length; i += step) {
+        const [lon, lat] = coords[i];
+        pts.push(latLonToVec3(lat, lon, 1.003));
+      }
+      if (pts.length < 2) return;
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      landGroup.add(new THREE.Line(geo, lineMat));
+    });
+
+    globeGroup.add(landGroup);
+    return landGroup;
+  }
+
+  let landGroup = null;
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+    .then(r => r.json())
+    .then(data => {
+      landGroup = decodeTopo(data);
+      gsap.from(landGroup.children.map(c => c.material), {
+        opacity: 0, duration: 2, stagger: 0.005, ease: "power1.in"
+      });
+    })
+    .catch(() => {});
+
+  /* ═══════════════════════════════════════
+     CITY MARKERS (3D points on globe)
+  ═══════════════════════════════════════ */
+  const cityMeshes = {};
+  const cityPulses = {};
+
+  Object.entries(CITIES).forEach(([id, c]) => {
+    const pos = latLonToVec3(c.lat, c.lon, 1.01);
+
+    // Dot
+    const geo = new THREE.SphereGeometry(0.015, 12, 12);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    globeGroup.add(mesh);
+    cityMeshes[id] = mesh;
+
+    // Pulse ring
+    const ringGeo = new THREE.RingGeometry(0.015, 0.025, 24);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x00d4ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(pos);
+    ring.lookAt(pos.clone().multiplyScalar(2));
+    ring.scale.set(0, 0, 0);
+    globeGroup.add(ring);
+    cityPulses[id] = ring;
+  });
+
+  /* ═══════════════════════════════════════
+     TRANSFER ARCS (3D curves on globe)
+  ═══════════════════════════════════════ */
+  const arcObjects = [];
+
+  function createArc3D(fromId, toId, color) {
+    const f = CITIES[fromId], t = CITIES[toId];
+    const start = latLonToVec3(f.lat, f.lon, 1.005);
+    const end   = latLonToVec3(t.lat, t.lon, 1.005);
+
+    // Arc height based on distance
+    const mid = start.clone().add(end).multiplyScalar(0.5);
+    const dist = start.distanceTo(end);
+    mid.normalize().multiplyScalar(1 + dist * 0.35);
+
+    const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+    const points = curve.getPoints(60);
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+
+    // drawRange controls how much of the arc is visible (for draw-in animation)
+    geo.setDrawRange(0, 0);
+
+    const mat = new THREE.LineBasicMaterial({
+      color: color || 0x00ffaa, transparent: true, opacity: 0.8, linewidth: 1
+    });
+    const line = new THREE.Line(geo, mat);
+    globeGroup.add(line);
+
+    // Traveling dot
+    const dotGeo = new THREE.SphereGeometry(0.012, 8, 8);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa });
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.visible = false;
+    globeGroup.add(dot);
+
+    const obj = { line, dot, curve, points, geo, totalPts: points.length };
+    arcObjects.push(obj);
+    return obj;
+  }
+
+  /* ═══════════════════════════════════════
+     GSAP — MASTER TIMELINE
+  ═══════════════════════════════════════ */
+  let master;
+  const counters = { countries: 0, transferred: 0, users: 0, speed: 0 };
+
+  function setInitialStates() {
+    gsap.set('#header', { autoAlpha: 0, y: -20 });
+    gsap.set('#tagline', { autoAlpha: 0, y: 10 });
+    gsap.set('#statsBar', { autoAlpha: 0, y: 10 });
+    gsap.set('#replayBtn', { autoAlpha: 0, y: 10 });
+    gsap.set(globeGroup.rotation, { y: 0 });
+    gsap.set(globeGroup.scale, { x: 0.85, y: 0.85, z: 0.85 });
+
+    Object.values(cityMeshes).forEach(m => m.scale.set(0, 0, 0));
+    Object.values(cityPulses).forEach(r => { r.scale.set(0, 0, 0); r.material.opacity = 0; });
+
+    // Clear arcs
+    arcObjects.forEach(a => {
+      a.geo.setDrawRange(0, 0);
+      a.dot.visible = false;
+    });
+
+    // Clear feed
+    $('transferFeed').innerHTML = '';
+
+    counters.countries = 0; counters.transferred = 0; counters.users = 0; counters.speed = 0;
+    $('statCountries').textContent = '0';
+    $('statTransferred').textContent = '$0';
+    $('statUsers').textContent = '0';
+    $('statSpeed').textContent = '<0s';
+  }
+
+  function pulseCity(id) {
+    const ring = cityPulses[id];
+    gsap.fromTo(ring.scale, { x: 1, y: 1, z: 1 }, { x: 4, y: 4, z: 4, duration: 0.7, ease: "power2.out" });
+    gsap.fromTo(ring.material, { opacity: 0.6 }, { opacity: 0, duration: 0.7, ease: "power2.out" });
+  }
+
+  function addFeedItem(t, index) {
+    const feed = $('transferFeed');
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.innerHTML = `
+      <div class="feed-route">${CITIES[t.from].label} <span class="arrow">→</span> ${CITIES[t.to].label}</div>
+      <div class="feed-amount">${t.amount}</div>
+      <div class="feed-time">${t.time}</div>
+    `;
+    feed.insertBefore(item, feed.firstChild);
+    gsap.from(item, { autoAlpha: 0, x: 20, duration: 0.4, ease: "back.out(1.4)" });
+
+    // Keep max 5
+    while (feed.children.length > 5) feed.removeChild(feed.lastChild);
+  }
+
+  function arcAnimTl(arcObj, transferData, index) {
+    const tl = gsap.timeline();
+    const proxy = { p: 0 };
+    const total = arcObj.totalPts;
+
+    tl.to(proxy, {
+      p: 1,
+      duration: 0.9,
+      ease: "power2.inOut",
+      onStart() { arcObj.dot.visible = true; },
+      onUpdate() {
+        // Draw arc progressively
+        const drawn = Math.floor(proxy.p * total);
+        arcObj.geo.setDrawRange(0, drawn);
+
+        // Move dot to leading edge
+        const pt = arcObj.curve.getPoint(proxy.p);
+        arcObj.dot.position.copy(pt);
+      }
+    })
+    .add(() => {
+      arcObj.dot.visible = false;
+      pulseCity(transferData.to);
+      addFeedItem(transferData, index);
+    });
+
+    return tl;
+  }
+
+  function buildMaster() {
+    const tl = gsap.timeline({ paused: true });
+
+    // ── Intro: Globe scales in + header ──
+    tl.to('#header', { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, "intro")
+      .to(globeGroup.scale, { x: 1, y: 1, z: 1, duration: 1.2, ease: "power2.out" }, "intro")
+      // Slow initial rotation
+      .to(globeGroup.rotation, { y: Math.PI * 0.3, duration: 3, ease: "power1.inOut" }, "intro")
+
+      // ── Cities pop in ──
+      .addLabel("cities", "intro+=1.2");
+
+    const cityOrder = ['london','nyc','dubai','mumbai','tokyo','singapore','saoPaulo','lagos','nairobi','sydney'];
+    cityOrder.forEach((id, i) => {
+      tl.to(cityMeshes[id].scale, {
+        x: 1, y: 1, z: 1, duration: 0.3,
+        ease: "back.out(2)"
+      }, `cities+=${i * 0.12}`)
+      .add(() => pulseCity(id), `cities+=${i * 0.12}`);
+    });
+
+    // ── Transfer arcs ──
+    tl.addLabel("transfers", "cities+=1.2");
+
+    // Pre-create arcs
+    const arcData = [];
+    TRANSFERS.forEach(t => {
+      arcData.push({ arc: createArc3D(t.from, t.to), data: t });
+    });
+
+    arcData.forEach((a, i) => {
+      tl.add(arcAnimTl(a.arc, a.data, i), i === 0 ? "transfers" : "+=0.15");
+    });
+
+    // Continuous rotation during transfers
+    tl.to(globeGroup.rotation, {
+      y: Math.PI * 1.3, duration: 8, ease: "none"
+    }, "transfers-=0.5");
+
+    // ── Stats + tagline ──
+    tl.addLabel("stats", "+=0.6")
+      .to('#tagline', { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, "stats")
+      .to('#statsBar', { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, "stats+=0.15")
+      .to(counters, {
+        countries: 180, transferred: 2.4, users: 50, speed: 3,
+        duration: 0.9, ease: "power3.out",
+        onUpdate() {
+          $('statCountries').textContent   = Math.round(counters.countries) + '+';
+          $('statTransferred').textContent = '$' + counters.transferred.toFixed(1) + 'B';
+          $('statUsers').textContent       = Math.round(counters.users) + 'M+';
+          $('statSpeed').textContent       = '<' + Math.round(counters.speed) + 's';
+        }
+      }, "stats")
+      .to('#replayBtn', { autoAlpha: 1, y: 0, duration: 0.3, ease: "power2.out" }, "stats+=0.9");
+
+    return tl;
+  }
+
+  /* ═══════════════════════════════════════
+     RENDER LOOP
+  ═══════════════════════════════════════ */
+  let idleRotation = 0;
+  let isIdling = false;
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Gentle idle rotation after timeline completes
+    if (isIdling) {
+      globeGroup.rotation.y += 0.001;
+    }
+
+    // Continuous pulse animation for city rings
+    Object.values(cityPulses).forEach(ring => {
+      if (ring.scale.x > 0.1 && ring.material.opacity < 0.01) {
+        // Reset pulse for continuous effect
+        ring.scale.set(1, 1, 1);
+        ring.material.opacity = 0.4;
+        gsap.to(ring.scale, { x: 3.5, y: 3.5, z: 3.5, duration: 1.5, ease: "power2.out" });
+        gsap.to(ring.material, { opacity: 0, duration: 1.5, ease: "power2.out" });
+      }
+    });
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* ═══════════════════════════════════════
+     START + REPLAY
+  ═══════════════════════════════════════ */
+  function startShow() {
+    isIdling = false;
+
+    // Clean up old arcs
+    arcObjects.forEach(a => {
+      globeGroup.remove(a.line);
+      globeGroup.remove(a.dot);
+      a.geo.dispose();
+    });
+    arcObjects.length = 0;
+
+    setInitialStates();
+    master = buildMaster();
+    master.eventCallback('onComplete', () => { isIdling = true; });
+    master.play();
+  }
+
+  $('replayBtn').addEventListener('click', () => {
+    if (master) master.kill();
+    startShow();
+  });
+
+  // Reduced motion
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInitialStates();
+    master = buildMaster();
+    master.progress(1, false);
+    isIdling = true;
+    return;
+  }
+
+  // Initial start with slight delay
+  setTimeout(startShow, 300);
+
+  /* ═══════════════════════════════════════
+     MOUSE INTERACTION — tilt globe toward cursor
+  ═══════════════════════════════════════ */
+  let mouseX = 0, mouseY = 0;
+  document.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 0.3;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 0.15;
+  });
+
+  // Smooth follow
+  gsap.ticker.add(() => {
+    if (!isIdling) return;
+    globeGroup.rotation.x += (mouseY - globeGroup.rotation.x) * 0.02;
+  });
+
+})();
+</script>
+</body>
+</html>

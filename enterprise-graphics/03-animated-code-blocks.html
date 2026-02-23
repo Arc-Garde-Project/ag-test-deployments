@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern 3: Animated Code Blocks</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PATTERN 3: ANIMATED CODE BLOCKS
+   Used by: Stripe, Raycast, Supabase
+
+   KEY TECHNIQUES:
+   - Character-by-character typing with JS
+   - Syntax highlighting via colored <span> tags
+   - Blinking cursor (CSS animation)
+   - Terminal output streaming line by line
+   - Code block inside window chrome frame
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.section-header {
+  text-align: center;
+  padding: 60px 24px 20px;
+}
+.section-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+@media (max-width: 768px) {
+  .demo-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   CODE WINDOW: the container frame
+   ============================================================ */
+.code-window {
+  background: #1a1816;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 16px 32px rgba(0, 0, 0, 0.15);
+}
+
+.window-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #222019;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.06);
+  gap: 8px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+.file-name {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  color: #5a544c;
+  font-weight: 500;
+  margin-right: 38px;
+}
+
+/* ============================================================
+   CODE CONTENT: the typing area
+
+   Monospace font is critical. Line numbers are optional but
+   add authenticity. Line height should be generous (1.7-2.0)
+   for readability on dark backgrounds.
+   ============================================================ */
+.code-content {
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  min-height: 220px;
+  position: relative;
+}
+
+/* ============================================================
+   LINE NUMBERS
+   CSS counters auto-increment for each .code-line
+   ============================================================ */
+.code-content.with-lines {
+  padding-left: 56px;
+  counter-reset: line;
+}
+.code-content.with-lines .code-line {
+  counter-increment: line;
+  position: relative;
+}
+.code-content.with-lines .code-line::before {
+  content: counter(line);
+  position: absolute;
+  left: -40px;
+  width: 24px;
+  text-align: right;
+  color: #3a3632;
+  font-size: 11px;
+}
+
+/* ============================================================
+   SYNTAX HIGHLIGHTING COLORS
+
+   These are the colored spans that make code look real.
+   Each language has its own convention, but these 6 token
+   types cover most needs.
+   ============================================================ */
+.tok-keyword  { color: #C4956A; }           /* const, let, function, import */
+.tok-string   { color: #7dba6a; }           /* "hello", 'world' */
+.tok-comment  { color: #5a544c; font-style: italic; }  /* // comment */
+.tok-function { color: #6aadba; }           /* functionName */
+.tok-number   { color: #d4976a; }           /* 42, 3.14 */
+.tok-type     { color: #ba8fd4; }           /* class names, type annotations */
+.tok-operator { color: #8a7e72; }           /* =, =>, {, } */
+.tok-property { color: #b8a88a; }           /* object.property */
+
+/* ============================================================
+   THE BLINKING CURSOR
+
+   A pseudo-element that blinks at the end of the typing.
+   width: 2px creates a thin line cursor.
+   The blink animation alternates opacity.
+   ============================================================ */
+.typing-cursor::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background: #C4956A;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: cursorBlink 0.9s steps(1) infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ============================================================
+   TERMINAL VARIANT
+   Green prompt, streaming output lines
+   ============================================================ */
+.terminal-content {
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  min-height: 220px;
+}
+
+.terminal-line {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.terminal-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.terminal-prompt {
+  color: #7dba6a;
+}
+.terminal-cmd {
+  color: #e8e0d6;
+}
+.terminal-output {
+  color: #6b6057;
+}
+.terminal-success {
+  color: #28c840;
+}
+.terminal-warning {
+  color: #febc2e;
+}
+.terminal-url {
+  color: #6aadba;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============================================================
+   DEMO LABELS
+   ============================================================ */
+.demo-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #C4956A;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.demo-sublabel {
+  font-size: 11px;
+  color: #5a544c;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* ============================================================
+   FULL-WIDTH DEMO (for the advanced typing example)
+   ============================================================ */
+.full-width-demo {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+/* Replay button */
+.replay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #252320;
+  border: 1px solid rgba(196, 149, 106, 0.15);
+  border-radius: 6px;
+  color: #C4956A;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.replay-btn:hover { background: #2a2724; }
+
+/* ============================================================
+   ANNOTATIONS
+   ============================================================ */
+.annotations {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.annotation {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.annotation h3 {
+  font-size: 14px;
+  color: #C4956A;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.annotation p {
+  font-size: 13px;
+  color: #8a7e72;
+  line-height: 1.6;
+}
+.annotation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+</style>
+</head>
+<body>
+
+<div class="section-header">
+  <h1>Pattern 3: Animated Code Blocks</h1>
+  <p>Code that types itself character by character with syntax highlighting, blinking cursors, and streaming terminal output. Used by Stripe, Raycast, and Supabase.</p>
+</div>
+
+<div class="demo-grid">
+
+  <!-- DEMO 1: Character-by-character typing -->
+  <div>
+    <div class="demo-label">Character-by-Character Typing</div>
+    <div class="demo-sublabel">JS types each character, wraps tokens in colored spans</div>
+    <div class="code-window">
+      <div class="window-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="file-name">api.js</span>
+      </div>
+      <div class="code-content with-lines" id="typing-demo">
+        <!-- JS will populate this -->
+      </div>
+    </div>
+    <button class="replay-btn" onclick="startTypingDemo()">Replay</button>
+  </div>
+
+  <!-- DEMO 2: Terminal streaming -->
+  <div>
+    <div class="demo-label">Terminal Output Streaming</div>
+    <div class="demo-sublabel">Lines appear one at a time with fade + slide</div>
+    <div class="code-window">
+      <div class="window-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="file-name">Terminal</span>
+      </div>
+      <div class="terminal-content" id="terminal-demo">
+        <!-- JS will populate this -->
+      </div>
+    </div>
+    <button class="replay-btn" onclick="startTerminalDemo()">Replay</button>
+  </div>
+
+</div>
+
+<!-- DEMO 3: Full typing with multiple languages -->
+<div class="full-width-demo">
+  <div class="demo-label">Advanced: Multi-Token Syntax Highlighting</div>
+  <div class="demo-sublabel">Each token type gets its own color as it types</div>
+  <div class="code-window">
+    <div class="window-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="file-name">payment.ts</span>
+    </div>
+    <div class="code-content with-lines" id="advanced-typing-demo">
+      <!-- JS will populate this -->
+    </div>
+  </div>
+  <button class="replay-btn" onclick="startAdvancedTypingDemo()">Replay</button>
+</div>
+
+<!-- TECHNIQUE BREAKDOWN -->
+<div class="annotations">
+  <div class="annotation">
+    <h3>1. The Typing Engine (JavaScript)</h3>
+    <p>Define code as an array of token objects: <code>[{text: "const", type: "keyword"}, {text: " ", type: ""}, ...]</code>. A recursive function pops one character at a time from the current token, wraps it in a <code>&lt;span class="tok-keyword"&gt;</code>, and appends it to the output element. Use <code>setTimeout</code> with 40-80ms delay between characters. Newlines create new <code>.code-line</code> divs.</p>
+  </div>
+  <div class="annotation">
+    <h3>2. Syntax Highlighting Tokens</h3>
+    <p>Six token types cover 90% of code: <code>keyword</code> (language reserved words), <code>string</code> (quoted text), <code>function</code> (function/method names), <code>comment</code> (// or /* */), <code>number</code> (literals), <code>type</code> (class names). Each maps to a CSS class with a distinct color. The colors should follow familiar IDE conventions: keywords warm, strings green, comments gray.</p>
+  </div>
+  <div class="annotation">
+    <h3>3. The Blinking Cursor</h3>
+    <p>A CSS <code>::after</code> pseudo-element on the active line. <code>width: 2px; height: 16px; background: accent</code>. Animation uses <code>steps(1)</code> timing function for an instant on/off blink (not a fade). Duration of <code>0.9s</code> feels natural. The cursor class moves to whatever element is currently being typed into. Remove it from the previous line when starting a new one.</p>
+  </div>
+  <div class="annotation">
+    <h3>4. Terminal Streaming</h3>
+    <p>Each terminal line starts with <code>opacity: 0; transform: translateY(4px)</code>. A JS loop adds the <code>.visible</code> class to each line with a staggered delay (200-400ms between lines). The CSS transition handles the fade-in and slide-up. Use different colors for prompt (<code>#7dba6a</code>), commands (<code>#e8e0d6</code>), output (<code>#6b6057</code>), and success messages (<code>#28c840</code>).</p>
+  </div>
+  <div class="annotation">
+    <h3>5. Line Numbers</h3>
+    <p>CSS counters auto-increment: <code>counter-reset: line</code> on the container, <code>counter-increment: line</code> on each <code>.code-line</code>, and <code>content: counter(line)</code> in a <code>::before</code> pseudo-element. Position them absolutely to the left of the code. Use a dim color (<code>#3a3632</code>) so they do not compete with the code.</p>
+  </div>
+  <div class="annotation">
+    <h3>6. Enterprise Details</h3>
+    <p>Real sites like Stripe add an Intersection Observer to start the typing animation only when the code block scrolls into view. They also add a slight delay (500ms) after becoming visible before typing starts. The window chrome frame (dots + filename) is essential. A subtle <code>box-shadow</code> glow around the code window makes it feel elevated. Some sites add a language badge or copy button in the top-right corner of the code block.</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TYPING ENGINE
+
+   This is the core JS that powers character-by-character typing.
+
+   Approach:
+   1. Define code as an array of token objects
+   2. Each token has: text, type (for CSS class), and optional newline flag
+   3. A recursive function processes one character at a time
+   4. Characters are wrapped in <span class="tok-{type}">
+   5. Newlines (\n) create new .code-line divs
+   6. The cursor class moves with the active line
+   ============================================================ */
+
+function typeCode(container, tokens, charDelay, callback) {
+  container.innerHTML = '';
+
+  var currentLine = document.createElement('div');
+  currentLine.className = 'code-line typing-cursor';
+  container.appendChild(currentLine);
+
+  var currentSpan = null;
+  var tokenIndex = 0;
+  var charIndex = 0;
+
+  function typeNext() {
+    if (tokenIndex >= tokens.length) {
+      if (callback) callback();
+      return;
+    }
+
+    var token = tokens[tokenIndex];
+    var char = token.text[charIndex];
+
+    if (char === '\n') {
+      /* Move cursor to new line */
+      currentLine.classList.remove('typing-cursor');
+      currentLine = document.createElement('div');
+      currentLine.className = 'code-line typing-cursor';
+      container.appendChild(currentLine);
+      currentSpan = null;
+      charIndex++;
+    } else {
+      /* Create or reuse span for this token type */
+      if (!currentSpan || currentSpan.dataset.type !== token.type) {
+        currentSpan = document.createElement('span');
+        currentSpan.className = token.type ? 'tok-' + token.type : '';
+        currentSpan.dataset.type = token.type || '';
+        currentLine.appendChild(currentSpan);
+      }
+      currentSpan.textContent += char;
+      charIndex++;
+    }
+
+    /* Move to next token if current is exhausted */
+    if (charIndex >= token.text.length) {
+      tokenIndex++;
+      charIndex = 0;
+      currentSpan = null;
+    }
+
+    /* Vary the delay slightly for natural feel */
+    var delay = charDelay + (Math.random() * 20 - 10);
+    /* Longer pause after newlines */
+    if (char === '\n') delay = charDelay * 3;
+
+    setTimeout(typeNext, delay);
+  }
+
+  typeNext();
+}
+
+
+/* ============================================================
+   DEMO 1: Simple typing
+   ============================================================ */
+function startTypingDemo() {
+  var tokens = [
+    { text: 'const', type: 'keyword' },
+    { text: ' ', type: '' },
+    { text: 'response', type: 'function' },
+    { text: ' = ', type: 'operator' },
+    { text: 'await', type: 'keyword' },
+    { text: ' ', type: '' },
+    { text: 'fetch', type: 'function' },
+    { text: '(\n', type: 'operator' },
+    { text: '  ', type: '' },
+    { text: '"/api/payments"', type: 'string' },
+    { text: ',\n', type: 'operator' },
+    { text: '  { ', type: 'operator' },
+    { text: 'method', type: 'property' },
+    { text: ': ', type: 'operator' },
+    { text: '"POST"', type: 'string' },
+    { text: ',\n', type: 'operator' },
+    { text: '    ', type: '' },
+    { text: 'body', type: 'property' },
+    { text: ': ', type: 'operator' },
+    { text: 'JSON', type: 'type' },
+    { text: '.', type: 'operator' },
+    { text: 'stringify', type: 'function' },
+    { text: '(', type: 'operator' },
+    { text: 'payload', type: '' },
+    { text: ') }\n', type: 'operator' },
+    { text: ');\n\n', type: 'operator' },
+    { text: '// Handle the response', type: 'comment' },
+    { text: '\n', type: '' },
+    { text: 'const', type: 'keyword' },
+    { text: ' { ', type: 'operator' },
+    { text: 'id', type: 'property' },
+    { text: ', ', type: 'operator' },
+    { text: 'status', type: 'property' },
+    { text: ' } = ', type: 'operator' },
+    { text: 'await', type: 'keyword' },
+    { text: ' response.', type: '' },
+    { text: 'json', type: 'function' },
+    { text: '();', type: 'operator' },
+  ];
+
+  typeCode(document.getElementById('typing-demo'), tokens, 50);
+}
+
+
+/* ============================================================
+   DEMO 2: Terminal streaming
+
+   Technique: pre-build all lines as hidden DOM elements,
+   then reveal them one at a time with a staggered delay.
+   ============================================================ */
+function startTerminalDemo() {
+  var container = document.getElementById('terminal-demo');
+  container.innerHTML = '';
+
+  var lines = [
+    { text: '$ ', cls: 'terminal-prompt', append: 'npm run deploy', appendCls: 'terminal-cmd' },
+    { text: '', cls: '' },
+    { text: 'Building project...', cls: 'terminal-output' },
+    { text: 'Compiled successfully in 2.4s', cls: 'terminal-output' },
+    { text: '', cls: '' },
+    { text: 'Optimizing assets:', cls: 'terminal-output' },
+    { text: '  JS:  142kb (gzipped: 48kb)', cls: 'terminal-output' },
+    { text: '  CSS:  18kb (gzipped: 4kb)', cls: 'terminal-output' },
+    { text: '  IMG:  12 files optimized', cls: 'terminal-output' },
+    { text: '', cls: '' },
+    { text: 'Deploying to production...', cls: 'terminal-output' },
+    { text: '', cls: '' },
+    { text: 'Deployed!', cls: 'terminal-success' },
+    { text: 'https://yourapp.vercel.app', cls: 'terminal-url' },
+  ];
+
+  /* Create all lines as hidden DOM elements */
+  var lineEls = lines.map(function(line) {
+    var div = document.createElement('div');
+    div.className = 'terminal-line';
+
+    if (line.text) {
+      var span = document.createElement('span');
+      span.className = line.cls;
+      span.textContent = line.text;
+      div.appendChild(span);
+    }
+
+    if (line.append) {
+      var span2 = document.createElement('span');
+      span2.className = line.appendCls;
+      span2.textContent = line.append;
+      div.appendChild(span2);
+    }
+
+    if (!line.text && !line.append) {
+      div.innerHTML = '&nbsp;';
+    }
+
+    container.appendChild(div);
+    return div;
+  });
+
+  /* Reveal lines one at a time */
+  lineEls.forEach(function(el, i) {
+    setTimeout(function() {
+      el.classList.add('visible');
+    }, i * 300); /* 300ms between each line */
+  });
+}
+
+
+/* ============================================================
+   DEMO 3: Advanced typing with TypeScript tokens
+   ============================================================ */
+function startAdvancedTypingDemo() {
+  var tokens = [
+    { text: 'import', type: 'keyword' },
+    { text: ' { ', type: 'operator' },
+    { text: 'Stripe', type: 'type' },
+    { text: ' } ', type: 'operator' },
+    { text: 'from', type: 'keyword' },
+    { text: ' ', type: '' },
+    { text: '"stripe"', type: 'string' },
+    { text: ';\n\n', type: 'operator' },
+
+    { text: 'const', type: 'keyword' },
+    { text: ' stripe = ', type: '' },
+    { text: 'new', type: 'keyword' },
+    { text: ' ', type: '' },
+    { text: 'Stripe', type: 'type' },
+    { text: '(', type: 'operator' },
+    { text: 'process', type: '' },
+    { text: '.env.', type: 'operator' },
+    { text: 'STRIPE_KEY', type: 'property' },
+    { text: ');\n\n', type: 'operator' },
+
+    { text: 'async function', type: 'keyword' },
+    { text: ' ', type: '' },
+    { text: 'createPayment', type: 'function' },
+    { text: '(\n', type: 'operator' },
+    { text: '  ', type: '' },
+    { text: 'amount', type: 'property' },
+    { text: ': ', type: 'operator' },
+    { text: 'number', type: 'type' },
+    { text: ',\n', type: 'operator' },
+    { text: '  ', type: '' },
+    { text: 'currency', type: 'property' },
+    { text: ': ', type: 'operator' },
+    { text: 'string', type: 'type' },
+    { text: ' = ', type: 'operator' },
+    { text: '"usd"', type: 'string' },
+    { text: '\n) {\n', type: 'operator' },
+
+    { text: '  ', type: '' },
+    { text: 'const', type: 'keyword' },
+    { text: ' intent = ', type: '' },
+    { text: 'await', type: 'keyword' },
+    { text: ' stripe.', type: '' },
+    { text: 'paymentIntents', type: 'property' },
+    { text: '.', type: 'operator' },
+    { text: 'create', type: 'function' },
+    { text: '({\n', type: 'operator' },
+    { text: '    amount,\n', type: '' },
+    { text: '    currency,\n', type: '' },
+    { text: '    ', type: '' },
+    { text: 'automatic_payment_methods', type: 'property' },
+    { text: ': { ', type: 'operator' },
+    { text: 'enabled', type: 'property' },
+    { text: ': ', type: 'operator' },
+    { text: 'true', type: 'number' },
+    { text: ' },\n', type: 'operator' },
+    { text: '  });\n\n', type: 'operator' },
+
+    { text: '  ', type: '' },
+    { text: 'return', type: 'keyword' },
+    { text: ' intent.', type: '' },
+    { text: 'client_secret', type: 'property' },
+    { text: '; ', type: 'operator' },
+    { text: '// Send to frontend', type: 'comment' },
+    { text: '\n}', type: 'operator' },
+  ];
+
+  typeCode(document.getElementById('advanced-typing-demo'), tokens, 40);
+}
+
+
+/* ============================================================
+   AUTO-START: Run all demos on page load
+   Uses Intersection Observer to start when visible
+   (enterprise pattern -- only animate when in viewport)
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  /* Start demos after a short delay */
+  setTimeout(startTypingDemo, 600);
+  setTimeout(startTerminalDemo, 600);
+  setTimeout(startAdvancedTypingDemo, 600);
+});
+</script>
+</body>
+</html>

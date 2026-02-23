@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Product Graphics - Complete Pattern Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 60px 24px 80px;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 36px;
+  font-weight: 700;
+  color: #C4956A;
+}
+.page-subtitle {
+  text-align: center;
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto 48px;
+  line-height: 1.6;
+}
+
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 20px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.pattern-card {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 12px;
+  padding: 28px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+  display: block;
+}
+.pattern-card:hover {
+  border-color: rgba(196, 149, 106, 0.25);
+  transform: translateY(-2px);
+}
+
+.pattern-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #7A5C38;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.pattern-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e8e0d6;
+  margin-bottom: 6px;
+}
+.pattern-desc {
+  font-size: 13px;
+  color: #6b6057;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.pattern-sites {
+  font-size: 11px;
+  color: #5a544c;
+}
+.pattern-sites span {
+  color: #C4956A;
+}
+
+.summary-section {
+  max-width: 860px;
+  margin: 60px auto 0;
+}
+.summary-section h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 20px;
+}
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.summary-table th,
+.summary-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(196, 149, 106, 0.06);
+  font-size: 13px;
+}
+.summary-table th {
+  color: #8a7e72;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.summary-table td {
+  color: #b8a88a;
+}
+.summary-table td code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Enterprise Product Graphics</h1>
+<p class="page-subtitle">7 complete patterns showing how SaaS companies turn their product UI into marketing graphics. Each file is a standalone HTML document with all CSS/JS inline.</p>
+
+<div class="pattern-grid">
+
+  <a href="01-floating-ui-vignettes.html" class="pattern-card">
+    <div class="pattern-number">Pattern 01</div>
+    <div class="pattern-name">Floating UI Vignettes</div>
+    <div class="pattern-desc">Fake product interfaces floating on a dark background with depth shadows, 3D perspective, and ambient glow. Multiple panels at different translateZ depths.</div>
+    <div class="pattern-sites">Used by: <span>Stripe, Linear, Raycast</span></div>
+  </a>
+
+  <a href="02-product-flow-graphics.html" class="pattern-card">
+    <div class="pattern-number">Pattern 02</div>
+    <div class="pattern-name">Product Flow Graphics</div>
+    <div class="pattern-desc">Multiple UI panels connected by animated SVG lines showing a workflow. Code editor to build step to deployment to live site. Staircase layout with marching ants and flowing dots.</div>
+    <div class="pattern-sites">Used by: <span>Vercel, GitHub, Retool</span></div>
+  </a>
+
+  <a href="03-animated-code-blocks.html" class="pattern-card">
+    <div class="pattern-number">Pattern 03</div>
+    <div class="pattern-name">Animated Code Blocks</div>
+    <div class="pattern-desc">Code that types itself character by character with syntax highlighting, blinking cursor, and streaming terminal output. Token-based typing engine with 6 color categories.</div>
+    <div class="pattern-sites">Used by: <span>Stripe, Raycast, Supabase</span></div>
+  </a>
+
+  <a href="04-product-state-transitions.html" class="pattern-card">
+    <div class="pattern-number">Pattern 04</div>
+    <div class="pattern-name">Product State Transitions</div>
+    <div class="pattern-desc">UI elements that change state with smooth animations. Tasks completing and reordering, number counters rolling, toggle switches sliding, progress bars filling.</div>
+    <div class="pattern-sites">Used by: <span>Linear, Notion, Todoist</span></div>
+  </a>
+
+  <a href="05-bento-product-grids.html" class="pattern-card">
+    <div class="pattern-number">Pattern 05</div>
+    <div class="pattern-name">Bento Product Grids</div>
+    <div class="pattern-desc">Multiple product feature vignettes in a bento grid layout. Each cell shows a different feature with its own animation. CSS Grid with named template areas and mixed cell sizes.</div>
+    <div class="pattern-sites">Used by: <span>Apple, Notion, Arc Browser</span></div>
+  </a>
+
+  <a href="06-browser-device-frames.html" class="pattern-card">
+    <div class="pattern-number">Pattern 06</div>
+    <div class="pattern-name">Browser & Device Frames</div>
+    <div class="pattern-desc">CSS-only browser, phone, and laptop frames wrapping live HTML content. Address bar, traffic lights, Dynamic Island, keyboard base. Three complete device templates.</div>
+    <div class="pattern-sites">Used by: <span>Webflow, Framer, Linear</span></div>
+  </a>
+
+  <a href="07-connection-lines-data-flow.html" class="pattern-card">
+    <div class="pattern-number">Pattern 07</div>
+    <div class="pattern-name">Connection Lines & Data Flow</div>
+    <div class="pattern-desc">SVG lines connecting UI panels with 5 animation variants: marching ants, flowing dots, pulse waves, drawing lines, and glowing paths. Dynamic JavaScript positioning for CSS-layout elements.</div>
+    <div class="pattern-sites">Used by: <span>Stripe, Retool, Vercel</span></div>
+  </a>
+
+</div>
+
+<!-- Quick Reference: Key CSS Properties -->
+<div class="summary-section">
+  <h2>Quick Reference: Key CSS Properties</h2>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Effect</th>
+        <th>Properties</th>
+        <th>Values</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>3D Space</td>
+        <td><code>perspective</code></td>
+        <td>1000px - 1500px on parent container</td>
+      </tr>
+      <tr>
+        <td>Depth Layers</td>
+        <td><code>transform-style: preserve-3d</code> + <code>translateZ()</code></td>
+        <td>preserve-3d on group, 0-60px translateZ on children</td>
+      </tr>
+      <tr>
+        <td>Float Tilt</td>
+        <td><code>transform: rotateX() rotateY()</code></td>
+        <td>5-12deg for subtle, 15-25deg for dramatic</td>
+      </tr>
+      <tr>
+        <td>Layered Shadows</td>
+        <td><code>box-shadow</code> (4-5 layers stacked)</td>
+        <td>1px/4px/16px/32px blur radius, decreasing opacity</td>
+      </tr>
+      <tr>
+        <td>Ambient Glow</td>
+        <td><code>radial-gradient</code> on ::before</td>
+        <td>Accent color at 10-15% opacity, 600px wide</td>
+      </tr>
+      <tr>
+        <td>Marching Ants</td>
+        <td><code>stroke-dasharray</code> + <code>stroke-dashoffset</code></td>
+        <td>"8 5" dasharray, animate offset to -(dash+gap)</td>
+      </tr>
+      <tr>
+        <td>Path Animation</td>
+        <td>SVG <code>&lt;animateMotion&gt;</code></td>
+        <td>dur: 2-4s, repeatCount: indefinite</td>
+      </tr>
+      <tr>
+        <td>Drawing Effect</td>
+        <td><code>stroke-dasharray</code> = <code>stroke-dashoffset</code> = pathLength</td>
+        <td>Animate dashoffset to 0</td>
+      </tr>
+      <tr>
+        <td>Glow Filter</td>
+        <td>SVG <code>&lt;feGaussianBlur&gt;</code></td>
+        <td>stdDeviation: 2-4 for subtle, 6-8 for strong</td>
+      </tr>
+      <tr>
+        <td>Number Counter</td>
+        <td><code>requestAnimationFrame</code> + easing</td>
+        <td>1.5-2.5s duration, easeOutCubic</td>
+      </tr>
+      <tr>
+        <td>Toggle Slide</td>
+        <td><code>transform: translateX()</code></td>
+        <td>Thumb slides by (track-width - thumb-width - padding)</td>
+      </tr>
+      <tr>
+        <td>Cursor Blink</td>
+        <td><code>animation: steps(1)</code></td>
+        <td>0.9s duration, alternating opacity 1/0</td>
+      </tr>
+      <tr>
+        <td>Premium Easing</td>
+        <td><code>cubic-bezier(0.23, 1, 0.32, 1)</code></td>
+        <td>The "Linear/Stripe" deceleration curve</td>
+      </tr>
+      <tr>
+        <td>Bento Grid</td>
+        <td><code>grid-template-areas</code></td>
+        <td>Named areas with consistent gap (12-16px) and radius (16-20px)</td>
+      </tr>
+      <tr>
+        <td>Tabular Numbers</td>
+        <td><code>font-variant-numeric: tabular-nums</code></td>
+        <td>Prevents number width shift during counting</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

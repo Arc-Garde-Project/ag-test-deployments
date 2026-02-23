@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern 7: Connection Lines &amp; Data Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PATTERN 7: CONNECTION LINES & DATA FLOW
+   Used by: Stripe, Retool, Vercel
+
+   KEY TECHNIQUES:
+   - SVG paths connecting absolutely-positioned elements
+   - Animated dots/pulses traveling along paths
+   - Curved bezier paths between elements
+   - Gradient lines and glowing paths
+   - Dynamic SVG line positioning with JavaScript
+   - Multiple animation types: marching ants, flowing dots,
+     pulsing lines, drawing lines
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.section-header {
+  text-align: center;
+  padding: 60px 24px 20px;
+}
+.section-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   DEMO 1: ANIMATED DATA FLOW DIAGRAM
+
+   This is the classic Stripe/Retool pattern: multiple nodes
+   (boxes) connected by SVG paths with animated dots flowing
+   along them to show data movement.
+
+   CONSTRUCTION:
+   1. A relative-positioned container holds everything
+   2. Nodes are absolutely positioned within the container
+   3. An SVG layer sits behind the nodes (z-index: 1)
+   4. SVG paths connect node edges
+   5. Animated elements (dots, pulses) travel along the paths
+   ============================================================ */
+.demo-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #C4956A;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.demo-sublabel {
+  font-size: 12px;
+  color: #5a544c;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* --- Flow Diagram Container --- */
+.flow-diagram {
+  position: relative;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 24px;
+  height: 500px;
+}
+
+/* --- SVG Line Layer --- */
+.line-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   SVG LINE STYLES
+
+   5 animation variants demonstrated:
+   1. Marching ants (dashed line with offset animation)
+   2. Flowing dot (circle with animateMotion)
+   3. Pulse wave (opacity wave along path)
+   4. Drawing line (dashoffset from full to 0)
+   5. Gradient glow line (solid with glow filter)
+   ============================================================ */
+
+/* VARIANT 1: Marching Ants */
+.line-marching {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 8 5;
+  animation: march 1.4s linear infinite;
+}
+@keyframes march {
+  to { stroke-dashoffset: -13; } /* 8 + 5 */
+}
+
+/* VARIANT 2: Base line for flowing dot */
+.line-base {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.1);
+  stroke-width: 1.5;
+}
+
+/* Flowing dot */
+.flow-dot {
+  fill: #C4956A;
+  filter: url(#glow);
+}
+
+/* VARIANT 3: Pulse wave */
+.line-pulse {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.4);
+  stroke-width: 2;
+  stroke-dasharray: 4 80;
+  stroke-dashoffset: 0;
+  animation: pulseWave 3s ease-in-out infinite;
+}
+@keyframes pulseWave {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -84; }
+}
+
+/* VARIANT 4: Drawing line */
+.line-draw {
+  fill: none;
+  stroke: #C4956A;
+  stroke-width: 2;
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: drawPath 3s ease-out forwards;
+}
+@keyframes drawPath {
+  to { stroke-dashoffset: 0; }
+}
+
+/* VARIANT 5: Glowing line */
+.line-glow {
+  fill: none;
+  stroke: rgba(196, 149, 106, 0.5);
+  stroke-width: 2;
+  filter: url(#glow);
+}
+
+/* ============================================================
+   NODE BOXES
+
+   The connected elements. Positioned absolutely within
+   the diagram container.
+   ============================================================ */
+.flow-node {
+  position: absolute;
+  z-index: 2;
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.12);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 12px 24px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.node-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.node-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8e0d6;
+}
+.node-desc {
+  font-size: 11px;
+  color: #6b6057;
+  line-height: 1.4;
+}
+
+/* Node positioning */
+.node-source   { left: 40px;  top: 40px; }
+.node-process  { left: 300px; top: 120px; }
+.node-api      { left: 300px; top: 300px; }
+.node-db       { left: 560px; top: 80px; }
+.node-output   { left: 560px; top: 300px; }
+
+/* Node icon colors */
+.icon-source  { background: rgba(196, 149, 106, 0.2); color: #C4956A; }
+.icon-process { background: rgba(106, 173, 186, 0.2); color: #6aadba; }
+.icon-api     { background: rgba(186, 143, 212, 0.2); color: #ba8fd4; }
+.icon-db      { background: rgba(125, 186, 106, 0.2); color: #7dba6a; }
+.icon-output  { background: rgba(254, 188, 46, 0.2);  color: #febc2e; }
+
+/* Active pulse on nodes */
+.node-active::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  background: #28c840;
+  border-radius: 50%;
+  animation: nodePulse 2.1s ease-in-out infinite;
+}
+@keyframes nodePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(40, 200, 64, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(40, 200, 64, 0); }
+}
+
+/* ============================================================
+   DEMO 2: ISOLATED LINE ANIMATION TECHNIQUES
+
+   Shows each animation variant side by side
+   ============================================================ */
+.technique-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 20px;
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+
+.technique-card {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.08);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.technique-card h4 {
+  font-size: 12px;
+  color: #C4956A;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.technique-card p {
+  font-size: 10px;
+  color: #5a544c;
+  margin-bottom: 16px;
+}
+.technique-card svg {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   DEMO 3: DYNAMIC LINE POSITIONING (JavaScript)
+
+   Shows how to calculate SVG path coordinates from
+   actual DOM element positions. This is the technique
+   for connecting elements that are positioned with CSS
+   (flexbox, grid, etc.) rather than fixed coordinates.
+   ============================================================ */
+.dynamic-demo {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 0 24px;
+  position: relative;
+}
+
+.dynamic-nodes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.dynamic-node {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.12);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: center;
+  z-index: 2;
+  position: relative;
+}
+.dynamic-node .node-title {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.dynamic-node .node-desc {
+  font-size: 11px;
+}
+
+.dynamic-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ANNOTATIONS
+   ============================================================ */
+.annotations {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.annotation {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.annotation h3 {
+  font-size: 14px;
+  color: #C4956A;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.annotation p {
+  font-size: 13px;
+  color: #8a7e72;
+  line-height: 1.6;
+}
+.annotation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+.annotation pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: #161412;
+  padding: 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  overflow-x: auto;
+  color: #b8a88a;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="section-header">
+  <h1>Pattern 7: Connection Lines & Data Flow</h1>
+  <p>SVG lines connecting UI panels with animated dots, pulses, and drawing effects showing data flowing through a system. Used by Stripe, Retool, and Vercel.</p>
+</div>
+
+<!-- ============================================================
+     DEMO 1: FULL DATA FLOW DIAGRAM
+     5 nodes connected by various animated line styles
+     ============================================================ -->
+<div class="demo-label">Full Data Flow Diagram</div>
+<div class="demo-sublabel">5 nodes connected by 5 different animation techniques</div>
+
+<div class="flow-diagram">
+  <svg class="line-layer" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
+
+    <!-- SVG Filters for glow effect -->
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+
+      <!-- Arrowhead marker -->
+      <marker id="arrow" markerWidth="10" markerHeight="8"
+              refX="9" refY="4" orient="auto"
+              fill="rgba(196,149,106,0.4)">
+        <polygon points="0 0, 10 4, 0 8" />
+      </marker>
+    </defs>
+
+    <!-- LINE 1: Source -> Process (Marching Ants) -->
+    <path class="line-marching"
+          d="M 200 80
+             C 250 80, 260 160, 320 160"
+          marker-end="url(#arrow)" />
+
+    <!-- LINE 2: Source -> API (Flowing Dot on base line) -->
+    <path class="line-base"
+          d="M 200 100
+             C 230 200, 260 340, 320 340"
+          id="path-source-api" />
+    <circle class="flow-dot" r="5">
+      <animateMotion dur="3s" repeatCount="indefinite"
+        path="M 200 100 C 230 200, 260 340, 320 340" />
+    </circle>
+
+    <!-- LINE 3: Process -> DB (Pulse Wave) -->
+    <path class="line-pulse"
+          d="M 460 160
+             C 500 160, 520 120, 580 120"
+          marker-end="url(#arrow)" />
+
+    <!-- LINE 4: API -> Output (Drawing Line) -->
+    <path class="line-draw"
+          d="M 460 340
+             C 500 340, 520 340, 580 340"
+          marker-end="url(#arrow)" />
+
+    <!-- LINE 5: Process -> Output (Glowing Line) -->
+    <path class="line-glow"
+          d="M 440 200
+             C 480 250, 540 280, 580 320"
+          marker-end="url(#arrow)" />
+
+    <!-- Extra flowing dots on line 5 -->
+    <circle class="flow-dot" r="4">
+      <animateMotion dur="2.1s" repeatCount="indefinite"
+        path="M 440 200 C 480 250, 540 280, 580 320" />
+    </circle>
+
+  </svg>
+
+  <!-- NODES -->
+  <div class="flow-node node-source node-active">
+    <div class="node-header">
+      <div class="node-icon icon-source">IN</div>
+      <div class="node-title">Data Source</div>
+    </div>
+    <div class="node-desc">Webhook events,<br>API requests</div>
+  </div>
+
+  <div class="flow-node node-process node-active">
+    <div class="node-header">
+      <div class="node-icon icon-process">FN</div>
+      <div class="node-title">Transform</div>
+    </div>
+    <div class="node-desc">Validate, enrich,<br>and route data</div>
+  </div>
+
+  <div class="flow-node node-api">
+    <div class="node-header">
+      <div class="node-icon icon-api">API</div>
+      <div class="node-title">External API</div>
+    </div>
+    <div class="node-desc">Third-party<br>integrations</div>
+  </div>
+
+  <div class="flow-node node-db node-active">
+    <div class="node-header">
+      <div class="node-icon icon-db">DB</div>
+      <div class="node-title">Database</div>
+    </div>
+    <div class="node-desc">Persist results,<br>query history</div>
+  </div>
+
+  <div class="flow-node node-output node-active">
+    <div class="node-header">
+      <div class="node-icon icon-output">OUT</div>
+      <div class="node-title">Output</div>
+    </div>
+    <div class="node-desc">Notifications,<br>dashboard updates</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DEMO 2: ISOLATED ANIMATION TECHNIQUES
+     Each variant shown independently
+     ============================================================ -->
+<div style="max-width:800px; margin: 40px auto; padding: 0 24px;">
+  <div class="demo-label">5 Line Animation Variants</div>
+  <div class="demo-sublabel">Each technique isolated for study</div>
+</div>
+
+<div class="technique-grid">
+
+  <!-- Marching Ants -->
+  <div class="technique-card">
+    <h4>1. Marching Ants</h4>
+    <p>stroke-dasharray + dashoffset animation</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="rgba(196,149,106,0.4)" stroke-width="2"
+            stroke-dasharray="8 5"
+            style="animation: march 1.4s linear infinite" />
+    </svg>
+  </div>
+
+  <!-- Flowing Dot -->
+  <div class="technique-card">
+    <h4>2. Flowing Dot</h4>
+    <p>SVG animateMotion along path</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="rgba(196,149,106,0.12)" stroke-width="1.5" />
+      <circle r="5" fill="#C4956A">
+        <animateMotion dur="2.1s" repeatCount="indefinite"
+          path="M 10 30 C 60 10, 120 50, 170 30" />
+      </circle>
+    </svg>
+  </div>
+
+  <!-- Pulse Wave -->
+  <div class="technique-card">
+    <h4>3. Pulse Wave</h4>
+    <p>Short dash with large gap, animated offset</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="rgba(196,149,106,0.5)" stroke-width="2"
+            stroke-dasharray="4 80"
+            style="animation: pulseWave 3s ease-in-out infinite" />
+    </svg>
+  </div>
+
+  <!-- Drawing Line -->
+  <div class="technique-card">
+    <h4>4. Drawing Line</h4>
+    <p>dashoffset from pathLength to 0</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="#C4956A" stroke-width="2"
+            stroke-dasharray="200" stroke-dashoffset="200"
+            style="animation: drawPath 3s ease-out infinite" />
+    </svg>
+  </div>
+
+  <!-- Glowing Line -->
+  <div class="technique-card">
+    <h4>5. Glow Line</h4>
+    <p>Solid line with SVG feGaussianBlur filter</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <defs>
+        <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="rgba(196,149,106,0.6)" stroke-width="2"
+            filter="url(#glow2)" />
+    </svg>
+  </div>
+
+  <!-- Multiple Dots -->
+  <div class="technique-card">
+    <h4>6. Multiple Dots</h4>
+    <p>Staggered animateMotion begin times</p>
+    <svg width="180" height="60" viewBox="0 0 180 60">
+      <path d="M 10 30 C 60 10, 120 50, 170 30"
+            fill="none" stroke="rgba(196,149,106,0.1)" stroke-width="1.5" />
+      <circle r="4" fill="#C4956A" opacity="1">
+        <animateMotion dur="3s" repeatCount="indefinite" begin="0s"
+          path="M 10 30 C 60 10, 120 50, 170 30" />
+      </circle>
+      <circle r="4" fill="#C4956A" opacity="0.6">
+        <animateMotion dur="3s" repeatCount="indefinite" begin="1s"
+          path="M 10 30 C 60 10, 120 50, 170 30" />
+      </circle>
+      <circle r="4" fill="#C4956A" opacity="0.3">
+        <animateMotion dur="3s" repeatCount="indefinite" begin="2s"
+          path="M 10 30 C 60 10, 120 50, 170 30" />
+      </circle>
+    </svg>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     DEMO 3: DYNAMIC LINE POSITIONING
+
+     Shows how to use JavaScript to calculate SVG path
+     coordinates from actual DOM element positions.
+     This is critical when your nodes use CSS layout
+     (flexbox, grid) rather than absolute positioning.
+     ============================================================ -->
+<div style="max-width:800px; margin: 40px auto; padding: 0 24px;">
+  <div class="demo-label">Dynamic Line Positioning (JavaScript)</div>
+  <div class="demo-sublabel">SVG paths calculated from actual DOM element positions</div>
+</div>
+
+<div class="dynamic-demo" id="dynamic-demo">
+  <svg class="dynamic-svg" id="dynamic-svg">
+    <defs>
+      <filter id="glow3" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- Lines will be drawn by JavaScript -->
+  </svg>
+
+  <div class="dynamic-nodes">
+    <div class="dynamic-node" data-connect="to" id="dyn-1">
+      <div class="node-title" style="color:#C4956A">Client</div>
+      <div class="node-desc">Request</div>
+    </div>
+    <div class="dynamic-node" data-connect="both" id="dyn-2">
+      <div class="node-title" style="color:#6aadba">Server</div>
+      <div class="node-desc">Process</div>
+    </div>
+    <div class="dynamic-node" data-connect="from" id="dyn-3">
+      <div class="node-title" style="color:#7dba6a">Database</div>
+      <div class="node-desc">Persist</div>
+    </div>
+  </div>
+</div>
+
+<!-- TECHNIQUE BREAKDOWN -->
+<div class="annotations">
+  <div class="annotation">
+    <h3>1. SVG Path Coordinates Between Elements</h3>
+    <p>For absolutely-positioned elements, path coordinates are straightforward: use the element's left/top plus half its width/height. For CSS-layout elements (flexbox, grid), use JavaScript to read <code>getBoundingClientRect()</code> and calculate coordinates relative to the SVG container. The path start is the right edge center of the source element; the path end is the left edge center of the target.</p>
+    <pre>const srcRect = sourceEl.getBoundingClientRect();
+const tgtRect = targetEl.getBoundingClientRect();
+const containerRect = container.getBoundingClientRect();
+
+const x1 = srcRect.right - containerRect.left;
+const y1 = srcRect.top + srcRect.height/2 - containerRect.top;
+const x2 = tgtRect.left - containerRect.left;
+const y2 = tgtRect.top + tgtRect.height/2 - containerRect.top;
+
+// Control points for the bezier curve
+const cpOffset = (x2 - x1) * 0.4;
+const d = `M ${x1} ${y1} C ${x1+cpOffset} ${y1}, ${x2-cpOffset} ${y2}, ${x2} ${y2}`;</pre>
+  </div>
+  <div class="annotation">
+    <h3>2. Marching Ants (stroke-dasharray + offset)</h3>
+    <p><code>stroke-dasharray: 8 5</code> creates 8px dashes with 5px gaps. Animating <code>stroke-dashoffset</code> from 0 to -(8+5) = -13 makes the dashes march forward. The animation must be <code>linear infinite</code> for smooth continuous motion. This is the simplest connection line animation and works everywhere.</p>
+  </div>
+  <div class="annotation">
+    <h3>3. Flowing Dots (animateMotion)</h3>
+    <p>SVG <code>&lt;animateMotion&gt;</code> moves an element along a path. The <code>path</code> attribute must match the connection line's <code>d</code> attribute exactly. Use <code>dur</code> to control speed (2-4 seconds is typical). For multiple dots on the same path, use different <code>begin</code> values to stagger them. Add <code>filter: drop-shadow()</code> or an SVG <code>&lt;feGaussianBlur&gt;</code> filter for a glow trail effect.</p>
+  </div>
+  <div class="annotation">
+    <h3>4. Pulse Wave</h3>
+    <p>A short dash (<code>stroke-dasharray: 4 80</code>) with a large gap creates a single "pulse" on the line. Animating the offset makes the pulse travel. The gap (80) should be close to the total path length so only one pulse is visible at a time. Use <code>ease-in-out</code> timing for a smooth acceleration/deceleration effect.</p>
+  </div>
+  <div class="annotation">
+    <h3>5. Drawing Line (path reveal)</h3>
+    <p>Set <code>stroke-dasharray</code> equal to the path length, and <code>stroke-dashoffset</code> also equal to the path length (hides the entire line). Animate <code>stroke-dashoffset</code> to 0, which progressively reveals the line. To get the exact path length, use <code>path.getTotalLength()</code> in JavaScript, or estimate with a large number (200-500 usually works).</p>
+  </div>
+  <div class="annotation">
+    <h3>6. Glow Effect</h3>
+    <p>Apply an SVG filter with <code>&lt;feGaussianBlur stdDeviation="3"&gt;</code>, then merge the blur with the original graphic. This creates a soft glow around the line. The filter must be defined in <code>&lt;defs&gt;</code> and referenced via <code>filter="url(#glow)"</code>. Increase <code>stdDeviation</code> for a larger glow. Performance note: blur filters can be expensive on mobile, so use sparingly.</p>
+  </div>
+  <div class="annotation">
+    <h3>7. Bezier Curve Control Points</h3>
+    <p>For horizontal connections (left to right), use <code>C</code> (cubic bezier) with control points offset horizontally: <code>M x1 y1 C x1+offset y1, x2-offset y2, x2 y2</code>. Setting offset to 30-40% of the horizontal distance creates a natural S-curve. For vertical connections, offset the control points vertically instead. For diagonal connections, you can blend both.</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DYNAMIC LINE POSITIONING
+
+   This JavaScript calculates SVG path coordinates from
+   actual DOM element positions. This is the technique
+   you need when elements are positioned by CSS layout
+   (flexbox, grid) rather than absolute coordinates.
+
+   STEPS:
+   1. Get bounding rectangles of source and target elements
+   2. Calculate coordinates relative to the SVG container
+   3. Build a cubic bezier path string
+   4. Create SVG path elements and append them
+   5. Add animated dots along the paths
+   ============================================================ */
+function drawDynamicLines() {
+  var container = document.getElementById('dynamic-demo');
+  var svg = document.getElementById('dynamic-svg');
+  var containerRect = container.getBoundingClientRect();
+
+  /* Set SVG size to match container */
+  svg.setAttribute('width', containerRect.width);
+  svg.setAttribute('height', containerRect.height);
+  svg.setAttribute('viewBox', '0 0 ' + containerRect.width + ' ' + containerRect.height);
+
+  /* Clear previous lines (keep defs) */
+  var defs = svg.querySelector('defs');
+  svg.innerHTML = '';
+  svg.appendChild(defs);
+
+  /* Define node pairs to connect */
+  var connections = [
+    { from: 'dyn-1', to: 'dyn-2' },
+    { from: 'dyn-2', to: 'dyn-3' },
+  ];
+
+  connections.forEach(function(conn, index) {
+    var fromEl = document.getElementById(conn.from);
+    var toEl = document.getElementById(conn.to);
+    var fromRect = fromEl.getBoundingClientRect();
+    var toRect = toEl.getBoundingClientRect();
+
+    /* Calculate connection points relative to SVG */
+    var x1 = fromRect.right - containerRect.left;
+    var y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
+    var x2 = toRect.left - containerRect.left;
+    var y2 = toRect.top + toRect.height / 2 - containerRect.top;
+
+    /* Control point offset (40% of horizontal distance) */
+    var cpOffset = (x2 - x1) * 0.4;
+
+    /* Build the path string */
+    var pathData = 'M ' + x1 + ' ' + y1 +
+                   ' C ' + (x1 + cpOffset) + ' ' + y1 +
+                   ', ' + (x2 - cpOffset) + ' ' + y2 +
+                   ', ' + x2 + ' ' + y2;
+
+    /* Create the base line */
+    var baseLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    baseLine.setAttribute('d', pathData);
+    baseLine.setAttribute('fill', 'none');
+    baseLine.setAttribute('stroke', 'rgba(196,149,106,0.15)');
+    baseLine.setAttribute('stroke-width', '1.5');
+    svg.appendChild(baseLine);
+
+    /* Create the marching ants line on top */
+    var animLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    animLine.setAttribute('d', pathData);
+    animLine.setAttribute('fill', 'none');
+    animLine.setAttribute('stroke', 'rgba(196,149,106,0.35)');
+    animLine.setAttribute('stroke-width', '2');
+    animLine.setAttribute('stroke-dasharray', '8 5');
+    animLine.style.animation = 'march 1.4s linear infinite';
+    animLine.style.animationDelay = (index * 0.3) + 's';
+    svg.appendChild(animLine);
+
+    /* Create flowing dot */
+    var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('r', '5');
+    dot.setAttribute('fill', '#C4956A');
+    dot.setAttribute('filter', 'url(#glow3)');
+
+    var motion = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+    motion.setAttribute('dur', '2.1s');
+    motion.setAttribute('repeatCount', 'indefinite');
+    motion.setAttribute('path', pathData);
+    motion.setAttribute('begin', (index * 0.7) + 's');
+
+    dot.appendChild(motion);
+    svg.appendChild(dot);
+  });
+}
+
+/* Run on load and resize */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(drawDynamicLines, 100);
+});
+window.addEventListener('resize', drawDynamicLines);
+</script>
+</body>
+</html>

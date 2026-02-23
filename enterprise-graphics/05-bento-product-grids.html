@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern 5: Bento Product Grids</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PATTERN 5: BENTO PRODUCT GRIDS
+   Used by: Apple, Notion, Arc Browser
+
+   KEY TECHNIQUES:
+   - CSS Grid with named grid areas for complex layouts
+   - Mixed cell sizes (1x1, 2x1, 1x2, 2x2) for visual hierarchy
+   - Each cell contains a miniature UI demo
+   - Individual animations per cell (chart drawing, typing, etc.)
+   - Consistent border-radius and gap for the "bento box" feel
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #171513;
+  color: #e8e0d6;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.section-header {
+  text-align: center;
+  padding: 60px 24px 20px;
+}
+.section-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #C4956A;
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #8a7e72;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   THE BENTO GRID
+
+   CSS Grid with explicit column/row sizing.
+
+   KEY INSIGHT: Apple uses a 4-column grid where the hero cell
+   spans 2 columns and 2 rows. Other cells are 1x1.
+   The gap between cells is consistent (usually 12-16px).
+   border-radius is also consistent (16-20px).
+
+   Grid template areas let you name each cell and control
+   the layout declaratively.
+   ============================================================ */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 14px;
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 24px;
+  /* Named grid areas create the bento layout */
+  grid-template-areas:
+    "hero   hero   speed  speed"
+    "hero   hero   code   toggle"
+    "chart  status code   users";
+}
+
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "hero   hero"
+      "speed  speed"
+      "code   toggle"
+      "chart  status"
+      "users  users";
+  }
+}
+
+/* ============================================================
+   BENTO CELL: the individual feature card
+
+   Each cell has:
+   - Consistent border-radius (16px)
+   - Subtle border for definition
+   - Dark background
+   - Overflow hidden (for contained animations)
+   - A feature title and a miniature demo
+   ============================================================ */
+.bento-cell {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 24px;
+  position: relative;
+  /* Subtle shadow for depth */
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease;
+}
+.bento-cell:hover {
+  border-color: rgba(196, 149, 106, 0.18);
+}
+
+/* Grid area assignments */
+.cell-hero   { grid-area: hero; }
+.cell-speed  { grid-area: speed; }
+.cell-code   { grid-area: code; }
+.cell-toggle { grid-area: toggle; }
+.cell-chart  { grid-area: chart; }
+.cell-status { grid-area: status; }
+.cell-users  { grid-area: users; }
+
+/* Cell header */
+.cell-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8e0d6;
+  margin-bottom: 4px;
+}
+.cell-desc {
+  font-size: 12px;
+  color: #6b6057;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   CELL 1: HERO (2x2)
+   Large dashboard preview
+   ============================================================ */
+.hero-dashboard {
+  background: #161412;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid rgba(196, 149, 106, 0.06);
+}
+.hero-metric-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.hero-metric {
+  flex: 1;
+  background: #1e1c1a;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+.hero-metric-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  color: #C4956A;
+}
+.hero-metric-label {
+  font-size: 10px;
+  color: #6b6057;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Animated area chart in hero */
+.area-chart {
+  width: 100%;
+  height: 120px;
+  position: relative;
+}
+.area-chart svg {
+  width: 100%;
+  height: 100%;
+}
+.chart-area-fill {
+  fill: url(#areaGradient);
+  opacity: 0;
+  animation: fadeInChart 0.9s ease-out 0.6s forwards;
+}
+.chart-area-line {
+  fill: none;
+  stroke: #C4956A;
+  stroke-width: 2;
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: drawLine 2.1s ease-out 0.3s forwards;
+}
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes fadeInChart {
+  to { opacity: 1; }
+}
+
+/* ============================================================
+   CELL 2: SPEED METRICS (2x1)
+   Animated number counters
+   ============================================================ */
+.speed-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+.speed-metric {
+  text-align: center;
+}
+.speed-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: #C4956A;
+  font-variant-numeric: tabular-nums;
+}
+.speed-unit {
+  font-size: 16px;
+  color: #7A5C38;
+  font-weight: 400;
+}
+.speed-label {
+  font-size: 11px;
+  color: #6b6057;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   CELL 3: CODE SNIPPET (1x2)
+   Miniature typing code
+   ============================================================ */
+.mini-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  background: #161412;
+  border-radius: 8px;
+  padding: 14px;
+  border: 1px solid rgba(196, 149, 106, 0.06);
+  height: calc(100% - 50px);
+  overflow: hidden;
+}
+.mc-kw { color: #C4956A; }
+.mc-str { color: #7dba6a; }
+.mc-fn { color: #6aadba; }
+.mc-cm { color: #5a544c; }
+
+/* ============================================================
+   CELL 4: TOGGLE (1x1)
+   Animated toggle demonstration
+   ============================================================ */
+.mini-toggle-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-top: 8px;
+}
+.mini-toggle {
+  width: 52px;
+  height: 28px;
+  border-radius: 50vh;
+  background: #3a3632;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.mini-toggle.on { background: rgba(196, 149, 106, 0.4); }
+.mini-toggle-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #6b6057;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+              background 0.3s ease;
+}
+.mini-toggle.on .mini-toggle-thumb {
+  transform: translateX(24px);
+  background: #C4956A;
+}
+.toggle-state {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #6b6057;
+  transition: color 0.3s ease;
+}
+.toggle-state.active { color: #C4956A; }
+
+/* ============================================================
+   CELL 5: BAR CHART (1x1)
+   Animated bars that grow from bottom
+   ============================================================ */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  height: 80px;
+  padding-top: 8px;
+}
+.bar {
+  width: 16px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(to top, #7A5C38, #C4956A);
+  transition: height 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.bar-label-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.bar-day {
+  width: 16px;
+  text-align: center;
+  font-size: 9px;
+  color: #5a544c;
+}
+
+/* ============================================================
+   CELL 6: STATUS INDICATOR (1x1)
+   Pulsing status dot with live text
+   ============================================================ */
+.status-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+.status-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid #28c840;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: statusPulse 3s ease-in-out infinite;
+}
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(40, 200, 64, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(40, 200, 64, 0); }
+}
+.status-inner-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #28c840;
+}
+.status-label-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #28c840;
+}
+.status-uptime {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #6b6057;
+}
+
+/* ============================================================
+   CELL 7: USER AVATARS (1x1)
+   Overlapping avatar stack
+   ============================================================ */
+.avatar-stack {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #1e1c1a;
+  margin-left: -10px;
+}
+.avatar:first-child { margin-left: 0; }
+.avatar-count {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #252320;
+  border: 2px solid #1e1c1a;
+  margin-left: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #C4956A;
+}
+.user-names {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #6b6057;
+}
+
+/* ============================================================
+   ANNOTATIONS
+   ============================================================ */
+.annotations {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.annotation {
+  background: #1e1c1a;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.annotation h3 {
+  font-size: 14px;
+  color: #C4956A;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.annotation p {
+  font-size: 13px;
+  color: #8a7e72;
+  line-height: 1.6;
+}
+.annotation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: #252320;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #C4956A;
+}
+</style>
+</head>
+<body>
+
+<div class="section-header">
+  <h1>Pattern 5: Bento Product Grids</h1>
+  <p>Multiple product feature vignettes arranged in a bento grid layout. Each cell showcases a different feature with its own miniature animation. Used by Apple, Notion, and Arc Browser.</p>
+</div>
+
+<!-- ============================================================
+     THE BENTO GRID
+
+     7 cells arranged with grid-template-areas:
+     - Hero (2x2): main dashboard preview
+     - Speed (2x1): performance metrics
+     - Code (1x2): code snippet
+     - Toggle (1x1): toggle switch
+     - Chart (1x1): bar chart
+     - Status (1x1): uptime indicator
+     - Users (1x1): avatar stack
+     ============================================================ -->
+<div class="bento-grid">
+
+  <!-- HERO CELL (2x2) -->
+  <div class="bento-cell cell-hero">
+    <div class="cell-title">Dashboard Overview</div>
+    <div class="cell-desc">Real-time analytics with live data visualization</div>
+    <div class="hero-dashboard">
+      <div class="hero-metric-row">
+        <div class="hero-metric">
+          <div class="hero-metric-val">$48.2k</div>
+          <div class="hero-metric-label">Revenue</div>
+        </div>
+        <div class="hero-metric">
+          <div class="hero-metric-val">2,841</div>
+          <div class="hero-metric-label">Users</div>
+        </div>
+        <div class="hero-metric">
+          <div class="hero-metric-val">94.2%</div>
+          <div class="hero-metric-label">Retention</div>
+        </div>
+      </div>
+      <!-- Animated area chart (SVG with draw animation) -->
+      <div class="area-chart">
+        <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(196,149,106,0.3)" />
+              <stop offset="100%" stop-color="rgba(196,149,106,0)" />
+            </linearGradient>
+          </defs>
+          <!-- Area fill -->
+          <path class="chart-area-fill"
+                d="M0 90 Q50 80, 80 70 T160 50 T240 60 T320 30 T400 20 L400 120 L0 120 Z" />
+          <!-- Line on top -->
+          <path class="chart-area-line"
+                d="M0 90 Q50 80, 80 70 T160 50 T240 60 T320 30 T400 20" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPEED CELL (2x1) -->
+  <div class="bento-cell cell-speed">
+    <div class="cell-title">Blazing Fast</div>
+    <div class="cell-desc">Optimized for speed at every layer</div>
+    <div class="speed-row">
+      <div class="speed-metric">
+        <div class="speed-value" id="speed-1">0<span class="speed-unit">ms</span></div>
+        <div class="speed-label">First Paint</div>
+      </div>
+      <div class="speed-metric">
+        <div class="speed-value" id="speed-2">0<span class="speed-unit">ms</span></div>
+        <div class="speed-label">TTI</div>
+      </div>
+      <div class="speed-metric">
+        <div class="speed-value" id="speed-3">0<span class="speed-unit">/100</span></div>
+        <div class="speed-label">Lighthouse</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE CELL (1x2) -->
+  <div class="bento-cell cell-code">
+    <div class="cell-title">Developer First</div>
+    <div class="cell-desc">Simple, powerful API</div>
+    <div class="mini-code">
+      <span class="mc-kw">import</span> { <span class="mc-fn">Client</span> }<br>
+      &nbsp;&nbsp;<span class="mc-kw">from</span> <span class="mc-str">'@sdk'</span>;<br><br>
+      <span class="mc-kw">const</span> app = <span class="mc-kw">new</span> <span class="mc-fn">Client</span>({<br>
+      &nbsp;&nbsp;key: process.env.<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="mc-str">API_KEY</span>,<br>
+      });<br><br>
+      <span class="mc-cm">// Deploy in one line</span><br>
+      <span class="mc-kw">await</span> app.<span class="mc-fn">deploy</span>({<br>
+      &nbsp;&nbsp;env: <span class="mc-str">'production'</span><br>
+      });
+    </div>
+  </div>
+
+  <!-- TOGGLE CELL (1x1) -->
+  <div class="bento-cell cell-toggle">
+    <div class="cell-title">Feature Flags</div>
+    <div class="cell-desc">Ship with confidence</div>
+    <div class="mini-toggle-demo">
+      <div class="mini-toggle on" onclick="this.classList.toggle('on'); this.nextElementSibling.classList.toggle('active'); this.nextElementSibling.textContent = this.classList.contains('on') ? 'enabled: true' : 'enabled: false';">
+        <div class="mini-toggle-thumb"></div>
+      </div>
+      <div class="toggle-state active">enabled: true</div>
+    </div>
+  </div>
+
+  <!-- CHART CELL (1x1) -->
+  <div class="bento-cell cell-chart">
+    <div class="cell-title">Weekly Traffic</div>
+    <div class="cell-desc">Pageviews by day</div>
+    <div class="bar-chart" id="bar-chart">
+      <div class="bar" style="height: 0%" data-target="45"></div>
+      <div class="bar" style="height: 0%" data-target="62"></div>
+      <div class="bar" style="height: 0%" data-target="38"></div>
+      <div class="bar" style="height: 0%" data-target="80"></div>
+      <div class="bar" style="height: 0%" data-target="55"></div>
+      <div class="bar" style="height: 0%" data-target="92"></div>
+      <div class="bar" style="height: 0%" data-target="70"></div>
+    </div>
+    <div class="bar-label-row">
+      <div class="bar-day">M</div>
+      <div class="bar-day">T</div>
+      <div class="bar-day">W</div>
+      <div class="bar-day">T</div>
+      <div class="bar-day">F</div>
+      <div class="bar-day">S</div>
+      <div class="bar-day">S</div>
+    </div>
+  </div>
+
+  <!-- STATUS CELL (1x1) -->
+  <div class="bento-cell cell-status">
+    <div class="cell-title">System Status</div>
+    <div class="cell-desc">All systems operational</div>
+    <div class="status-display">
+      <div class="status-ring">
+        <div class="status-inner-dot"></div>
+      </div>
+      <div class="status-label-text">Operational</div>
+      <div class="status-uptime">99.99% uptime</div>
+    </div>
+  </div>
+
+  <!-- USERS CELL (1x1) -->
+  <div class="bento-cell cell-users">
+    <div class="cell-title">Team</div>
+    <div class="cell-desc">Collaborate in real-time</div>
+    <div class="avatar-stack">
+      <div class="avatar" style="background: linear-gradient(135deg, #7A5C38, #C4956A)"></div>
+      <div class="avatar" style="background: linear-gradient(135deg, #5a7a38, #8ac46a)"></div>
+      <div class="avatar" style="background: linear-gradient(135deg, #385a7a, #6a8ac4)"></div>
+      <div class="avatar" style="background: linear-gradient(135deg, #7a3858, #c46a8a)"></div>
+      <div class="avatar-count">+8</div>
+    </div>
+    <div class="user-names">12 team members online</div>
+  </div>
+
+</div>
+
+<!-- TECHNIQUE BREAKDOWN -->
+<div class="annotations">
+  <div class="annotation">
+    <h3>1. Grid Template Areas</h3>
+    <p>The layout is defined with <code>grid-template-areas</code>, which gives each cell a named area. The hero cell spans 2 columns and 2 rows by occupying 4 grid slots. This is far more readable than <code>grid-column: span 2</code> and makes responsive rearrangement trivial. Apple uses a similar approach where the hero product image gets the largest cell and spec details get smaller cells.</p>
+  </div>
+  <div class="annotation">
+    <h3>2. The "Bento" Feel</h3>
+    <p>Three properties create the bento aesthetic: consistent <code>gap</code> (12-16px), consistent <code>border-radius</code> (16-20px), and consistent background. The gaps should never vary between cells. The border-radius should be the same for all cells. The background should be one shade lighter than the page background. Apple uses 16px radius with 12px gap on a near-white background.</p>
+  </div>
+  <div class="annotation">
+    <h3>3. Individual Cell Animations</h3>
+    <p>Each cell has its own contained animation. The key is <code>overflow: hidden</code> on each cell so animations never bleed into adjacent cells. Common patterns: SVG chart drawing (stroke-dashoffset), number counters (requestAnimationFrame), toggle switches (translateX), bar growth (height transition), pulsing status dots (box-shadow animation). Animations should be subtle and looping, not demanding attention.</p>
+  </div>
+  <div class="annotation">
+    <h3>4. Cell Sizing Hierarchy</h3>
+    <p>The largest cell (2x2) shows the most important feature. 2x1 cells (wide) are good for metrics with side-by-side data. 1x2 cells (tall) work for code blocks or vertical lists. 1x1 cells are for single-concept features (a toggle, a status, a chart). This size hierarchy directly maps to information importance, which is Apple's core principle.</p>
+  </div>
+  <div class="annotation">
+    <h3>5. Responsive Behavior</h3>
+    <p>The grid collapses gracefully by redefining <code>grid-template-areas</code> at the breakpoint. A 4-column layout becomes 2-column on tablet and 1-column on mobile. The named areas make this rearrangement clean. Each cell is self-contained so it works at any size. Notion's bento sections collapse to a single column where each cell becomes full-width.</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SPEED COUNTER ANIMATION
+   ============================================================ */
+function animateSpeedCounter(id, target, suffix) {
+  var el = document.getElementById(id);
+  var start = performance.now();
+  var duration = 2100;
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function update(now) {
+    var progress = Math.min((now - start) / duration, 1);
+    var current = Math.round(target * easeOutCubic(progress));
+    el.innerHTML = current + '<span class="speed-unit">' + suffix + '</span>';
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+/* ============================================================
+   BAR CHART ANIMATION
+   Grow bars from 0 to their target height
+   ============================================================ */
+function animateBars() {
+  var bars = document.querySelectorAll('#bar-chart .bar');
+  bars.forEach(function(bar, i) {
+    setTimeout(function() {
+      bar.style.height = bar.dataset.target + '%';
+    }, i * 100);
+  });
+}
+
+/* Auto-start all cell animations */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    animateSpeedCounter('speed-1', 142, 'ms');
+    animateSpeedCounter('speed-2', 310, 'ms');
+    animateSpeedCounter('speed-3', 98, '/100');
+  }, 600);
+
+  setTimeout(animateBars, 900);
+});
+</script>
+</body>
+</html>
